@@ -1,36 +1,24 @@
 <!DOCTYPE html>
 <html lang="ur">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Urdu Chat</title>
+  <meta charset="UTF-8">
+  <title>اردو AI چیٹ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
-    input, button { padding: 10px; font-size: 16px; margin: 5px 0; width: 100%; }
-    .response { margin-top: 20px; background: #fff; padding: 10px; border-radius: 5px; }
+    body { font-family: 'Noto Nastaliq Urdu', serif; padding: 20px; direction: rtl; background: #f8f8f8; }
+    #chat { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    #messages { min-height: 100px; margin-bottom: 10px; white-space: pre-wrap; }
+    #loader { display: none; color: green; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>🧠 اردو AI چیٹ</h2>
-  <input type="text" id="userInput" placeholder="اپنا سوال لکھیں..."/>
-  <button onclick="sendMessage()">جواب حاصل کریں</button>
-  <div class="response" id="responseBox"></div>
-
-  <script>
-    async function sendMessage() {
-      const input = document.getElementById("userInput").value;
-      const resBox = document.getElementById("responseBox");
-      resBox.innerHTML = "⏳ براہ کرم انتظار کریں...";
-
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input })
-      });
-
-      const data = await res.json();
-      resBox.innerHTML = data.reply || "❌ کوئی جواب نہیں آیا۔";
-    }
-  </script>
+  <div id="chat">
+    <h2>🤖 اردو AI چیٹ</h2>
+    <div id="messages"></div>
+    <div id="loader">⏳ جواب آ رہا ہے...</div>
+    <input type="text" id="userInput" placeholder="اپنا سوال لکھیں" style="width: 100%;">
+    <button onclick="sendMessage()">بھیجیں</button>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
