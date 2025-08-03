@@ -1,14 +1,12 @@
 {
-  "name": "urdu-gpt",
+  "name": "ai-urdu-chat",
   "version": "1.0.0",
-  "description": "Urdu GPT AI Web App using OpenRouter",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "body-parser": "^1.20.0",
     "express": "^4.18.2",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.9"
   }
 }
