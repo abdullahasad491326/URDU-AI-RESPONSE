@@ -1,76 +1,38 @@
 <!DOCTYPE html>
 <html lang="ur">
 <head>
-  <meta charset="UTF-8" />
-  <title>AI Urdu Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Gemini Urdu Chat</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-      text-align: center;
-    }
-    #chat-box {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px gray;
-    }
-    textarea {
-      width: 100%;
-      height: 100px;
-      margin-top: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      background: green;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .response {
-      margin-top: 20px;
-      background: #e6ffe6;
-      padding: 15px;
-      border-radius: 5px;
-      direction: rtl;
-    }
+    body { font-family: sans-serif; direction: rtl; background: #eef; padding: 20px; }
+    #chat { background: white; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; }
+    input, button { padding: 10px; margin-top: 10px; width: 80%; border-radius: 5px; }
+    #response { margin-top: 20px; background: #ddd; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <div id="chat-box">
-    <h2>🤖 اردو GPT چیٹ</h2>
-    <textarea id="userInput" placeholder="اپنا سوال اردو میں لکھیں..."></textarea><br />
-    <button onclick="sendMessage()">بھیجیں</button>
-    <div class="response" id="responseBox"></div>
+  <div id="chat">
+    <h2>اردو جیمنی AI چیٹ</h2>
+    <input type="text" id="input" placeholder="سوال لکھیں..." />
+    <button onclick="ask()">بھیجیں</button>
+    <div id="response"></div>
   </div>
 
   <script>
-    async function sendMessage() {
-      const input = document.getElementById("userInput").value.trim();
-      const responseBox = document.getElementById("responseBox");
+    async function ask() {
+      const input = document.getElementById('input').value;
+      document.getElementById('response').innerText = 'جواب لایا جا رہا ہے...';
 
-      if (!input) return;
-
-      responseBox.innerHTML = "⏳ جواب آ رہا ہے...";
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: input })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        responseBox.innerHTML = data.reply;
-      } else {
-        responseBox.innerHTML = "🚫 جواب حاصل نہیں ہو سکا۔";
+      try {
+        const res = await fetch('http://localhost:3000/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: input })
+        });
+        const data = await res.json();
+        document.getElementById('response').innerText = data.reply;
+      } catch (e) {
+        document.getElementById('response').innerText = '⚠️ سرور سے رابطہ ممکن نہیں';
       }
     }
   </script>
