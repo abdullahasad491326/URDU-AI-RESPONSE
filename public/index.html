@@ -1,40 +1,18 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Gemini Urdu Chat</title>
-  <style>
-    body { font-family: sans-serif; direction: rtl; background: #eef; padding: 20px; }
-    #chat { background: white; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; }
-    input, button { padding: 10px; margin-top: 10px; width: 80%; border-radius: 5px; }
-    #response { margin-top: 20px; background: #ddd; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Urdu ChatBot</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="chat">
-    <h2>اردو جیمنی AI چیٹ</h2>
-    <input type="text" id="input" placeholder="سوال لکھیں..." />
-    <button onclick="ask()">بھیجیں</button>
-    <div id="response"></div>
+  <div class="chat-container">
+    <h2>🤖 Urdu AI ChatBot</h2>
+    <div id="chat-box"></div>
+    <textarea id="user-input" placeholder="میسج لکھیں..."></textarea>
+    <button onclick="sendMessage()">ارسال کریں</button>
   </div>
-
-  <script>
-    async function ask() {
-      const input = document.getElementById('input').value;
-      document.getElementById('response').innerText = 'جواب لایا جا رہا ہے...';
-
-      try {
-        const res = await fetch('http://localhost:3000/ask', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: input })
-        });
-        const data = await res.json();
-        document.getElementById('response').innerText = data.reply;
-      } catch (e) {
-        document.getElementById('response').innerText = '⚠️ سرور سے رابطہ ممکن نہیں';
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
