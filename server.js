@@ -1,26 +1,31 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
+const express = require("express");
+const fetch = require("node-fetch");
 const app = express();
-const genAI = new GoogleGenerativeAI("AIzaSyBHNYHRtGVxs7N0YgJuOUL0dNwGqqrZYXs");
+app.use(express.static(__dirname));
+app.use(express.json());
 
-app.use(cors());
-app.use(bodyParser.json());
+const API_KEY = "AIzaSyBHNYHRtGVxs7N0YgJuOUL0dNwGqqrZYXs"; // Your key
 
-app.post('/ask', async (req, res) => {
+app.post("/chat", async (req, res) => {
+  const userMessage = req.body.message;
+
   try {
-    const prompt = req.body.prompt;
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    res.json({ reply: text });
+    const gptRes = await fetch("https://generativelanguage.googleapis.com/v1beta/models/chat-bison-001:generateMessage?key=" + API_KEY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: { messages: [{ author: "user", content: userMessage }] },
+        temperature: 0.7
+      })
+    });
+
+    const json = await gptRes.json();
+    const reply = json.candidates?.[0]?.content || "❌ کوئی جواب نہیں آیا";
+    res.json({ reply });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ reply: "⚠️ سرور پر خرابی ہوئی" });
+    res.json({ reply: "⚠️ سرور سے رابطہ ممکن نہیں۔" });
   }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("✅ Server running on port " + PORT));
