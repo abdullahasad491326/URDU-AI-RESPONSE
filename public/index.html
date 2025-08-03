@@ -2,36 +2,54 @@
 <html lang="ur">
 <head>
   <meta charset="UTF-8">
-  <title>AI Urdu Bot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>اردو AI چیٹ بوٹ</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap">
   <style>
     body {
       font-family: 'Noto Nastaliq Urdu', serif;
-      background: linear-gradient(to right, #d7e1ec, #ffffff);
+      background: #f5f5f5;
       padding: 20px;
-      text-align: center;
+      direction: rtl;
     }
-    textarea, button {
-      width: 90%;
+    #chat {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    .msg {
+      margin-bottom: 10px;
+    }
+    .user {
+      text-align: right;
+      color: blue;
+    }
+    .bot {
+      text-align: left;
+      color: green;
+    }
+    #inputBox {
+      width: 100%;
       padding: 10px;
       margin-top: 10px;
-      font-size: 16px;
-    }
-    .response {
-      margin-top: 20px;
-      border: 1px solid #ccc;
-      padding: 15px;
-      background-color: #f3f3f3;
-      direction: rtl;
       font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>🤖 اردو AI چیٹ بوٹ</h1>
-  <textarea id="userInput" placeholder="اپنا سوال لکھیں..."></textarea><br>
-  <button onclick="sendMessage()">جواب حاصل کریں</button>
-  <div class="response" id="responseBox">جواب یہاں آئے گا...</div>
+  <div id="chat">
+    <div class="msg bot">🌟 خوش آمدید! سوال پوچھیں۔</div>
+    <input id="inputBox" placeholder="اپنا پیغام لکھیں..." />
+    <button onclick="sendMessage()">ارسال کریں</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
