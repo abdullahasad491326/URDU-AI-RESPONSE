@@ -1,18 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ur">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Urdu ChatBot</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>AI Urdu Chat</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
+    input, button { padding: 10px; font-size: 16px; margin: 5px 0; width: 100%; }
+    .response { margin-top: 20px; background: #fff; padding: 10px; border-radius: 5px; }
+  </style>
 </head>
 <body>
-  <div class="chat-container">
-    <h2>🤖 Urdu AI ChatBot</h2>
-    <div id="chat-box"></div>
-    <textarea id="user-input" placeholder="میسج لکھیں..."></textarea>
-    <button onclick="sendMessage()">ارسال کریں</button>
-  </div>
-  <script src="script.js"></script>
+  <h2>🧠 اردو AI چیٹ</h2>
+  <input type="text" id="userInput" placeholder="اپنا سوال لکھیں..."/>
+  <button onclick="sendMessage()">جواب حاصل کریں</button>
+  <div class="response" id="responseBox"></div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("userInput").value;
+      const resBox = document.getElementById("responseBox");
+      resBox.innerHTML = "⏳ براہ کرم انتظار کریں...";
+
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input })
+      });
+
+      const data = await res.json();
+      resBox.innerHTML = data.reply || "❌ کوئی جواب نہیں آیا۔";
+    }
+  </script>
 </body>
 </html>
