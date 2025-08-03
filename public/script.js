@@ -1,14 +1,23 @@
 async function sendMessage() {
-  const input = document.getElementById("userInput").value;
-  const responseBox = document.getElementById("responseBox");
+  const input = document.getElementById("inputBox");
+  const msg = input.value.trim();
+  if (!msg) return;
 
-  responseBox.innerHTML = "⏳ براہ کرم انتظار کریں...";
+  const chat = document.getElementById("chat");
 
-  const body = {
-    messages: [
-      { role: "user", content: input }
-    ]
-  };
+  // یوزر کا پیغام دکھائیں
+  const userDiv = document.createElement("div");
+  userDiv.className = "msg user";
+  userDiv.innerText = msg;
+  chat.appendChild(userDiv);
+
+  input.value = "";
+
+  // بوٹ کا ریسپانس حاصل کریں
+  const responseDiv = document.createElement("div");
+  responseDiv.className = "msg bot";
+  responseDiv.innerText = "⏳ انتظار کریں...";
+  chat.appendChild(responseDiv);
 
   try {
     const res = await fetch("https://wewordle.org/gptapi/v1/web/turbo", {
@@ -16,13 +25,21 @@ async function sendMessage() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        messages: [
+          { role: "user", content: msg }
+        ]
+      })
     });
 
     const data = await res.json();
-    const reply = data?.data?.message?.content || "❌ کوئی جواب موصول نہیں ہوا۔";
-    responseBox.innerHTML = reply;
+
+    if (data?.result?.content) {
+      responseDiv.innerText = data.result.content;
+    } else {
+      responseDiv.innerText = "⚠️ معذرت! کوئی ریسپانس نہیں آیا۔";
+    }
   } catch (error) {
-    responseBox.innerHTML = "⚠️ خرابی: سرور سے رابطہ ممکن نہیں۔";
+    responseDiv.innerText = "🚫 خرابی: سرور سے رابطہ ممکن نہیں۔";
   }
 }
