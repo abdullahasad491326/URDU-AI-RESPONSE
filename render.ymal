@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ai-chat-pro
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    repo: https://github.com/yourusername/ai-chat-pro.git
+    branch: main
