@@ -1,30 +1,29 @@
 const express = require('express');
-const path = require('path');
 const axios = require('axios');
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const API_KEY = "AIzaSyBHNYHRtGVxs7N0YgJuOUL0dNwGqqrZYXs";  // YOUR GOOGLE GEMINI KEY
+// API route to proxy ChatGPT request
+app.post('/api/chat', async (req, res) => {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: "No text provided" });
 
-app.post('/chat', async (req, res) => {
-  const userMsg = req.body.message;
-
-  try {
-    const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + API_KEY,
-      { contents: [{ parts: [{ text: userMsg }] }] }
-    );
-
-    const reply = response.data.candidates[0]?.content?.parts[0]?.text || "جواب دستیاب نہیں۔";
-    res.json({ reply });
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ reply: "⚠️ سرور میں خرابی ہوئی۔" });
-  }
+    try {
+        const response = await axios.get(`https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(text)}`);
+        res.json(response.data);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Failed to fetch AI response" });
+    }
 });
 
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
