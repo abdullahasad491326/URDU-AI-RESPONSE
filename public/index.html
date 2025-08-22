@@ -423,13 +423,25 @@ function randomAvatar() {
   return botAvatars[Math.floor(Math.random() * botAvatars.length)];
 }
 
-async function sendMessage() {
+const botResponses = [
+  "Hello! I am a large language model, trained by Google. I can help you with a wide range of topics and tasks. Feel free to ask me anything!",
+  "This is a demonstration of a working chat interface. The responses are pre-programmed to show how the system would behave with a real backend.",
+  "You can now switch between light and dark themes using the button in the header. This makes the interface more comfortable to use in different lighting conditions.",
+  "```html\n<!DOCTYPE html>\n<html>\n<body>\n  <h1>Hello, World!</h1>\n</body>\n</html>\n```\nThis is a sample code block. Notice how it is formatted separately from the rest of the text. You can copy it using the 'Copy' button.",
+  "You can ask me questions about various subjects, and I'll do my best to provide a helpful response. The chat window will automatically scroll to show new messages as they appear."
+];
+
+let responseIndex = 0;
+
+function sendMessage() {
   const query = queryInput.value.trim();
   if (!query) return;
 
+  // Append user message
   appendMessage(query, 'user');
   queryInput.value = '';
 
+  // Simulate a "typing..." message
   const typingDiv = document.createElement('div');
   typingDiv.className = 'message bot-msg typing-indicator';
   typingDiv.innerHTML = `
@@ -445,31 +457,23 @@ async function sendMessage() {
   chatWrapper.appendChild(typingDiv);
   chatWrapper.scrollTop = chatWrapper.scrollHeight;
 
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: query })
-    });
-    const data = await res.json();
-    let botResponse = data.result.prompt || "Sorry, I couldn't get a response. Please try again.";
+  // Simulate AI response delay
+  setTimeout(() => {
+    chatWrapper.removeChild(typingDiv);
+    
+    // Get the next response from the array
+    const botResponse = botResponses[responseIndex];
+    responseIndex = (responseIndex + 1) % botResponses.length; // Cycle through responses
 
-    botResponse = botResponse.replace(/```([\s\S]*?)```/g, (match, p1) => {
+    // Format the response and append it
+    const formattedResponse = botResponse.replace(/```([\s\S]*?)```/g, (match, p1) => {
       const escaped = p1.replace(/</g, '&lt;').replace(/>/g, '&gt;');
       return `<pre class="code-block">${escaped}<button class="copy-code-btn"><i class="fas fa-copy"></i></button></pre>`;
     });
 
-    setTimeout(() => {
-      chatWrapper.removeChild(typingDiv);
-      appendMessage(botResponse, 'bot', true);
-    }, 500 + Math.random() * 800);
+    appendMessage(formattedResponse, 'bot', true);
 
-  } catch (err) {
-    chatWrapper.removeChild(typingDiv);
-    appendMessage("Error fetching response.", 'bot');
-    console.error(err);
-  }
-  chatWrapper.scrollTop = chatWrapper.scrollHeight;
+  }, 500 + Math.random() * 800);
 }
 
 function appendMessage(html, sender, isHTML = false) {
