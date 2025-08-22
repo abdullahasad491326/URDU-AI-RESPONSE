@@ -1,24 +1,186 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>اردو AI چیٹ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: 'Noto Nastaliq Urdu', serif; padding: 20px; direction: rtl; background: #f8f8f8; }
-    #chat { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
-    #messages { min-height: 100px; margin-bottom: 10px; white-space: pre-wrap; }
-    #loader { display: none; color: green; font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chat Professional</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#f0f4f8;transition:0.3s;}
+body.dark{background:#121212;color:#f1f1f1;}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;font-weight:600;font-size:1.2rem;background:linear-gradient(90deg,#ff416c,#ff4b2b);color:white;box-shadow:0 3px 8px rgba(0,0,0,0.2);}
+#theme-btn{padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-weight:500;color:#ff416c;background:white;transition:0.3s;font-size:0.85rem;}
+#theme-btn:hover{background:#f0f0f0;}
+
+#chat-wrapper{flex:1;padding:12px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;scroll-behavior:smooth;}
+
+.message{
+  max-width:85%;
+  padding:10px 14px;
+  border-radius:18px;
+  font-size:13px;
+  line-height:1.5;
+  word-wrap:break-word;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  animation:fadeIn 0.3s ease-in-out;
+  box-shadow:0 1px 4px rgba(0,0,0,0.1);
+}
+.user{align-self:flex-end;border-bottom-right-radius:0;background:#fff;}
+.bot{align-self:flex-start;border-bottom-left-radius:0;}
+
+.avatar{width:24px;height:24px;border-radius:50%;background:#fff;flex-shrink:0;margin-bottom:3px;}
+body.dark .bot .avatar{background:#333;}
+body.dark .user .avatar{background:#555;}
+
+.text{white-space:pre-wrap;word-wrap:break-word;font-size:12px;line-height:1.4;}
+
+.code-block{
+  background:#1e1e1e;
+  color:#f8f8f2;
+  padding:6px 8px;
+  border-radius:6px;
+  position:relative;
+  overflow-x:auto;
+  font-family:monospace;
+  font-size:12px;
+  margin:4px 0;
+  white-space: pre-wrap;
+}
+.copy-code-btn{
+  position:absolute;
+  top:4px;
+  right:4px;
+  background:#ff416c;
+  color:white;
+  border:none;
+  padding:2px 5px;
+  font-size:10px;
+  border-radius:4px;
+  cursor:pointer;
+  display:none;
+}
+.code-block:hover .copy-code-btn{display:inline-block;}
+
+.timestamp{align-self:flex-end;font-size:9px;color:#555;margin-top:2px;}
+body.dark .timestamp{color:#ccc;}
+
+#input-area{display:flex;padding:8px 10px;gap:5px;position:sticky;bottom:0;background:#fff;border-top:1px solid #ccc;z-index:100;}
+body.dark #input-area{background:#1e1e1e;border-top:1px solid #555;}
+#query{flex:1;padding:8px 12px;border-radius:25px;border:1px solid #ccc;outline:none;font-size:13px;transition:0.3s;}
+body.dark #query{background:#2c2c2c;border:1px solid #555;color:white;}
+#send-btn{padding:8px 12px;border-radius:25px;border:none;background:linear-gradient(45deg,#ff416c,#ff4b2b);color:white;font-weight:500;cursor:pointer;font-size:13px;transition:0.3s;}
+#send-btn:hover{background:linear-gradient(45deg,#ff4b2b,#ff416c);}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+
+#chat-wrapper::-webkit-scrollbar{width:6px;}
+#chat-wrapper::-webkit-scrollbar-thumb{background:#888;border-radius:3px;}
+#chat-wrapper::-webkit-scrollbar-thumb:hover{background:#555;}
+</style>
 </head>
 <body>
-  <div id="chat">
-    <h2>🤖 اردو AI چیٹ</h2>
-    <div id="messages"></div>
-    <div id="loader">⏳ جواب آ رہا ہے...</div>
-    <input type="text" id="userInput" placeholder="اپنا سوال لکھیں" style="width: 100%;">
-    <button onclick="sendMessage()">بھیجیں</button>
-  </div>
-  <script src="script.js"></script>
+
+<header>
+  AI Chat Pro
+  <button id="theme-btn" onclick="toggleTheme()">Toggle Theme</button>
+</header>
+
+<div id="chat-wrapper"></div>
+
+<div id="input-area">
+  <input type="text" id="query" placeholder="Type your question..." onkeypress="if(event.key==='Enter'){sendMessage()}">
+  <button id="send-btn" onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+const chatWrapper=document.getElementById('chat-wrapper');
+const queryInput=document.getElementById('query');
+
+function toggleTheme(){document.body.classList.toggle('dark');}
+const colors=['#FF6B6B','#FFB347','#6BCB77','#4D96FF','#9B5DE5','#F15BB5','#00BBF9'];
+function randomColor(){return colors[Math.floor(Math.random()*colors.length)];}
+
+async function sendMessage(){
+  const query=queryInput.value.trim();
+  if(!query)return;
+  appendMessage(query,'user');
+  queryInput.value='';
+
+  const typingDiv=document.createElement('div');
+  typingDiv.className='message bot';
+  typingDiv.style.background=randomColor();
+  typingDiv.innerHTML='<div class="avatar"></div><span class="text"><span class="typing">Typing...</span></span>';
+  chatWrapper.appendChild(typingDiv);
+  chatWrapper.scrollTop=chatWrapper.scrollHeight;
+
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text: query})
+    });
+    const data=await res.json();
+    let botResponse=data.result.prompt||"No response.";
+
+    botResponse=botResponse.replace(/```([\s\S]*?)```/g,(match,p1)=>{
+      const escaped=p1.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<pre class="code-block">${escaped}<button class="copy-code-btn">Copy</button></pre>`;
+    });
+
+    setTimeout(()=>{
+      chatWrapper.removeChild(typingDiv);
+      appendMessage(botResponse,'bot',true);
+    },300 + Math.random()*400);
+
+  }catch(err){
+    chatWrapper.removeChild(typingDiv);
+    appendMessage("Error fetching response.",'bot');
+    console.error(err);
+  }
+  chatWrapper.scrollTop=chatWrapper.scrollHeight;
+}
+
+function appendMessage(html,sender,isHTML=false){
+  const msgDiv=document.createElement('div');
+  msgDiv.className=`message ${sender}`;
+  msgDiv.style.background = sender==='bot'?randomColor():'#fff';
+
+  const avatar=document.createElement('div');
+  avatar.className='avatar';
+  msgDiv.appendChild(avatar);
+
+  const spanText=document.createElement('span');
+  spanText.className='text';
+  if(isHTML){
+    spanText.innerHTML=html;
+    spanText.querySelectorAll('.copy-code-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const code = btn.parentElement.textContent.replace('Copy','').trim();
+        navigator.clipboard.writeText(code);
+        btn.innerText='Copied!';
+        setTimeout(()=> btn.innerText='Copy',1500);
+      });
+    });
+  }else{
+    spanText.innerText=html;
+  }
+  msgDiv.appendChild(spanText);
+
+  const timestamp=document.createElement('span');
+  timestamp.className='timestamp';
+  const time=new Date();
+  timestamp.innerText=time.getHours().toString().padStart(2,'0')+':'+time.getMinutes().toString().padStart(2,'0');
+  msgDiv.appendChild(timestamp);
+
+  chatWrapper.appendChild(msgDiv);
+  chatWrapper.scrollTop=chatWrapper.scrollHeight;
+}
+</script>
+
 </body>
 </html>
