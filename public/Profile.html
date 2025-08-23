@@ -6,7 +6,6 @@
 <title>Ultra DP Viewer</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== Base ===== */
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
     font-family: 'Orbitron', sans-serif;
@@ -18,16 +17,14 @@
     justify-content: center;
     min-height: 100vh;
     overflow-x: hidden;
+    text-align: center;
   }
-
-  /* ===== Title ===== */
   h1 {
     font-size: 2.8rem;
     background: linear-gradient(90deg, #38bdf8, #f472b6, #8b5cf6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: neon 2s ease-in-out infinite alternate;
-    text-align: center;
     margin-bottom: 20px;
     letter-spacing: 2px;
   }
@@ -35,8 +32,6 @@
     0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #f472b6; }
     100% { text-shadow: 0 0 20px #38bdf8, 0 0 40px #f472b6, 0 0 60px #8b5cf6; }
   }
-
-  /* ===== Input & Button ===== */
   #input-container { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   input {
     width: 220px;
@@ -63,17 +58,8 @@
     box-shadow:0 5px 15px rgba(0,0,0,0.4);
     transition:0.3s;
   }
-  button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow:0 10px 25px rgba(0,0,0,0.6);
-  }
-
-  /* ===== DP Result ===== */
-  #result {
-    margin-top:25px;
-    text-align:center;
-    transition:0.5s;
-  }
+  button:hover { transform: translateY(-3px) scale(1.05); box-shadow:0 10px 25px rgba(0,0,0,0.6); }
+  #result { margin-top:25px; transition:0.5s; }
   img {
     max-width:220px;
     border-radius:15px;
@@ -85,8 +71,6 @@
     0% { transform: scale(1); box-shadow:0 0 10px #38bdf8,0 0 20px #8b5cf6; }
     100% { transform: scale(1.08); box-shadow:0 0 25px #38bdf8,0 0 50px #f472b6; }
   }
-
-  /* ===== Channel Button ===== */
   .channel-btn {
     margin-top:30px;
     padding:12px 25px;
@@ -98,13 +82,9 @@
     text-decoration:none;
     box-shadow:0 8px 25px rgba(0,0,0,0.7);
     transition:0.3s;
+    display:inline-block;
   }
-  .channel-btn:hover {
-    transform: translateY(-3px) scale(1.05) rotate(-2deg);
-    box-shadow:0 15px 50px rgba(0,0,0,0.8);
-  }
-
-  /* ===== Footer ===== */
+  .channel-btn:hover { transform: translateY(-3px) scale(1.05) rotate(-2deg); box-shadow:0 15px 50px rgba(0,0,0,0.8); }
   .footer { margin-top:25px; font-size:12px; opacity:0.6; letter-spacing:1px; }
 </style>
 </head>
@@ -136,14 +116,16 @@ async function getDP(){
 
   try{
     const response = await fetch(`/api/dp?phone=${phone}`);
-    if(!response.ok){ resultDiv.innerHTML = "❌ failed"; return; }
+    if(!response.ok){ resultDiv.innerHTML = "❌ failed to connect server"; return; }
 
     const data = await response.text();
     if(data.startsWith("http")){
       resultDiv.innerHTML = `<img src="${data}" alt="DP">`;
-    } else { resultDiv.innerHTML = data; }
+    } else {
+      resultDiv.innerHTML = `<span>❌ No DP Found</span><br>${data}`;
+    }
   } catch(err){
-    resultDiv.innerHTML = "❌ error";
+    resultDiv.innerHTML = "❌ error fetching DP";
   }
 }
 </script>
