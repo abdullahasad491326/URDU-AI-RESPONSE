@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultra DP Viewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Base ===== */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Orbitron', sans-serif;
+    background: radial-gradient(circle at top left, #0f172a, #111827);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== Title ===== */
+  h1 {
+    font-size: 2.8rem;
+    background: linear-gradient(90deg, #38bdf8, #f472b6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: neon 2s ease-in-out infinite alternate;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+  }
+  @keyframes neon {
+    0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #f472b6; }
+    100% { text-shadow: 0 0 20px #38bdf8, 0 0 40px #f472b6, 0 0 60px #8b5cf6; }
+  }
+
+  /* ===== Input & Button ===== */
+  #input-container { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  input {
+    width: 220px;
+    padding:12px;
+    border-radius:12px;
+    border:2px solid #38bdf8;
+    outline:none;
+    font-size:16px;
+    text-align:center;
+    background: rgba(255,255,255,0.05);
+    color:#fff;
+    transition:0.3s;
+  }
+  input:focus { border-color:#f472b6; box-shadow:0 0 15px #f472b6; }
+  button {
+    padding:12px 25px;
+    font-size:16px;
+    font-weight:bold;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    background: linear-gradient(45deg,#38bdf8,#f472b6,#8b5cf6);
+    color:white;
+    box-shadow:0 5px 15px rgba(0,0,0,0.4);
+    transition:0.3s;
+  }
+  button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow:0 10px 25px rgba(0,0,0,0.6);
+  }
+
+  /* ===== DP Result ===== */
+  #result {
+    margin-top:25px;
+    text-align:center;
+    transition:0.5s;
+  }
+  img {
+    max-width:220px;
+    border-radius:15px;
+    border:3px solid #38bdf8;
+    box-shadow:0 0 20px #f472b6,0 0 40px #8b5cf6;
+    animation:pulse 2s infinite alternate;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); box-shadow:0 0 10px #38bdf8,0 0 20px #8b5cf6; }
+    100% { transform: scale(1.08); box-shadow:0 0 25px #38bdf8,0 0 50px #f472b6; }
+  }
+
+  /* ===== Channel Button ===== */
+  .channel-btn {
+    margin-top:30px;
+    padding:12px 25px;
+    font-size:14px;
+    font-weight:bold;
+    border-radius:12px;
+    background: linear-gradient(45deg,#25d366,#128c7e,#34b7f1);
+    color:white;
+    text-decoration:none;
+    box-shadow:0 8px 25px rgba(0,0,0,0.7);
+    transition:0.3s;
+  }
+  .channel-btn:hover {
+    transform: translateY(-3px) scale(1.05) rotate(-2deg);
+    box-shadow:0 15px 50px rgba(0,0,0,0.8);
+  }
+
+  /* ===== Footer ===== */
+  .footer { margin-top:25px; font-size:12px; opacity:0.6; letter-spacing:1px; }
+</style>
+</head>
+<body>
+
+<h1>DP VIEWER</h1>
+
+<div id="input-container">
+  <input type="text" id="phone" placeholder="923xxxxxxxxx">
+  <button onclick="getDP()">VIEW</button>
+</div>
+
+<div id="result"></div>
+
+<a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="channel-btn">JOIN CHANNEL</a>
+
+<div class="footer">by @CYBEREXPERTPK</div>
+
+<script>
+async function getDP(){
+  const phone = document.getElementById('phone').value.trim();
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = "⏳ fetching...";
+
+  if(!phone){
+    resultDiv.innerHTML = "⚠ enter number";
+    return;
+  }
+
+  try{
+    const response = await fetch(`/api/dp?phone=${phone}`);
+    if(!response.ok){ resultDiv.innerHTML = "❌ failed"; return; }
+
+    const data = await response.text();
+    if(data.startsWith("http")){
+      resultDiv.innerHTML = `<img src="${data}" alt="DP">`;
+    } else { resultDiv.innerHTML = data; }
+  } catch(err){
+    resultDiv.innerHTML = "❌ error";
+  }
+}
+</script>
+
+</body>
+</html>
