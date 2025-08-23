@@ -106,37 +106,34 @@
 async function getDP(){
   const phone = document.getElementById('phone').value.trim();
   const resultDiv = document.getElementById('result');
-  resultDiv.innerHTML = "⏳ fetching...";
+  resultDiv.innerHTML = "⏳ Fetching...";
 
   if(!phone){
-    resultDiv.innerHTML = "⚠ enter number";
+    resultDiv.innerHTML = "⚠ Enter number";
     return;
   }
 
   try {
-    // ask backend for DP as blob (handles binary + text)
-    const response = await fetch(`/api/dp?phone=${phone}`);
-    if(!response.ok){ resultDiv.innerHTML = "❌ failed to connect server"; return; }
+    // Call Node.js backend proxy
+    const response = await fetch(`/api/dp?phone=${encodeURIComponent(phone)}`);
+    if(!response.ok){ 
+      resultDiv.innerHTML = "❌ Failed to connect server"; 
+      return; 
+    }
 
+    const blob = await response.blob();
     const contentType = response.headers.get("content-type");
 
     if(contentType && contentType.startsWith("image/")){
-      // if backend returned real image
-      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       resultDiv.innerHTML = `<img src="${url}" alt="DP">`;
     } else {
-      // otherwise treat it as text
-      const text = await response.text();
-      if(text.startsWith("http")){
-        resultDiv.innerHTML = `<img src="${text}" alt="DP">`;
-      } else {
-        resultDiv.innerHTML = `❌ No DP Found<br>${text}`;
-      }
+      const text = await blob.text();
+      resultDiv.innerHTML = `❌ No DP Found<br>${text}`;
     }
 
   } catch(err){
-    resultDiv.innerHTML = "❌ error fetching DP";
+    resultDiv.innerHTML = "❌ Error fetching DP";
     console.error(err);
   }
 }
