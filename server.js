@@ -36,9 +36,28 @@ app.get('/api/dp', async (req, res) => {
         }
 
         const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${encodeURIComponent(phone)}`;
-        const response = await axios.get(apiUrl);
 
-        res.set("Access-Control-Allow-Origin", "*");
+        const response = await axios.get(apiUrl, {
+            responseType: 'arraybuffer',
+            headers: {
+                "Host": "dpview.ilyashassan4u.workers.dev",
+                'sec-ch-ua-platform': '"Android"',
+                "user-agent": "Mozilla/5.0 (Linux; Android 12; CPH2127 Build/RKQ1.211119.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.94 Mobile Safari/537.36",
+                'sec-ch-ua': '"Not;A=Brand";v="99", "Android WebView";v="139", "Chromium";v="139"',
+                "sec-ch-ua-mobile": "?1",
+                "accept": "*/*",
+                "origin": "https://www.trickyworlds.com",
+                "x-requested-with": "mark.via.gp",
+                "sec-fetch-site": "cross-site",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-dest": "empty",
+                "referer": "https://www.trickyworlds.com/",
+                "accept-language": "en-PK,en-US;q=0.9,en;q=0.8",
+                "priority": "u=1, i"
+            }
+        });
+
+        res.set("Content-Type", response.headers["content-type"] || "image/jpeg");
         res.send(response.data);
 
     } catch (err) {
