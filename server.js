@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API route to proxy ChatGPT request
+// ================== Existing ChatGPT Proxy ==================
 app.post('/api/chat', async (req, res) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ error: "No text provided" });
@@ -24,6 +24,29 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+// ================== NEW DP Viewer Proxy ==================
+app.get('/api/dp', async (req, res) => {
+    const phone = req.query.phone;
+    if (!phone) {
+        return res.status(400).json({ error: "Phone number required" });
+    }
+
+    try {
+        const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${phone}`;
+        const response = await axios.get(apiUrl, { responseType: 'text' });
+
+        // Allow frontend to fetch
+        res.set("Access-Control-Allow-Origin", "*");
+
+        // If response is a link, send it back
+        res.send(response.data);
+    } catch (err) {
+        console.error("DP API Error:", err.message);
+        res.status(500).json({ error: "Failed to fetch DP" });
+    }
+});
+
+// ================== Start Server ==================
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
