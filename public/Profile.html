@@ -134,7 +134,7 @@ async function getDP(){
   try {  
     const response = await fetch(`/api/dp?phone=${encodeURIComponent(phone)}`);  
     if(!response.ok){   
-      resultDiv.innerHTML = "❌ Failed to connect server";   
+      resultDiv.innerHTML = "❌ Your Profile Picture Is Not Set To Public In What'sapp Privacy Setting";   
       return;   
     }  
 
