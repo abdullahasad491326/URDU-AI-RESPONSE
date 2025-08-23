@@ -1,103 +1,160 @@
-<!DOCTYPE html><html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WHATSAPP PROFILE VIEWER</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      border-radius: 1.5rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    .animate-border {
-      background: linear-gradient(270deg, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
-      background-size: 1000% 1000%;
-      animation: borderAnim 15s ease infinite;
-    }
-    @keyframes borderAnim {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-  </style>
-</head>
-<body>
-  <div class="p-1 rounded-3xl animate-border">
-    <div class="glass-card p-10 w-[420px] max-w-full text-center">
-      <h1 class="text-3xl font-bold mb-6">WHATSAPP PROFILE VIEWER</h1><input id="phoneInput" maxlength="12" placeholder="Enter 12-digit number" class="w-full px-4 py-3 rounded-xl border border-gray-600 text-black focus:ring-2 focus:ring-cyan-500 focus:outline-none" />
-  
-  <button id="searchBtn" class="mt-4 w-full py-3 rounded-xl font-semibold text-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">🔍 Search</button>
-  
-  <div id="result" class="mt-6 hidden">
-    <img id="dpImage" src="" alt="Profile Picture" class="rounded-2xl mx-auto shadow-lg border border-gray-700" />
-    
-    <div class="flex justify-center gap-4 mt-4">
-      <a id="openBtn" target="_blank" class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white">🌐 Open</a>
-      <a id="downloadBtn" download="profile.jpg" class="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white">⬇️ Download</a>
-      <button id="resetBtn" class="px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-700 text-white">♻️ Reset</button>
-    </div>
-  </div>
-  
-  <p id="error" class="text-red-400 mt-4 hidden"></p>
-</div>
+<!DOCTYPE html>
+<html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>WHATSAPP PROFILE VIEWER</title>  
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">  
+<style>  
+  * { margin:0; padding:0; box-sizing:border-box; }  
+  body {  
+    font-family: 'Orbitron', sans-serif;  
+    background: radial-gradient(circle at top left, #0f172a, #111827);  
+    color: #fff;  
+    display: flex;  
+    flex-direction: column;  
+    align-items: center;  
+    justify-content: center;  
+    min-height: 100vh;  
+    text-align: center;  
+  }  
+  h1 {  
+    font-size: 2.8rem;  
+    background: linear-gradient(90deg, #38bdf8, #f472b6, #8b5cf6);  
+    -webkit-background-clip: text;  
+    -webkit-text-fill-color: transparent;  
+    animation: neon 2s ease-in-out infinite alternate;  
+    margin-bottom: 20px;  
+    letter-spacing: 2px;  
+  }  
+  @keyframes neon {  
+    0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #f472b6; }  
+    100% { text-shadow: 0 0 20px #38bdf8, 0 0 40px #f472b6, 0 0 60px #8b5cf6; }  
+  }  
+  #input-container { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }  
+  input {  
+    width: 220px;  
+    padding:12px;  
+    border-radius:12px;  
+    border:2px solid #38bdf8;  
+    outline:none;  
+    font-size:16px;  
+    text-align:center;  
+    background: rgba(255,255,255,0.05);  
+    color:#fff;  
+    transition:0.3s;  
+  }  
+  input:focus { border-color:#f472b6; box-shadow:0 0 15px #f472b6; }  
+  button {  
+    padding:12px 25px;  
+    font-size:16px;  
+    font-weight:bold;  
+    border:none;  
+    border-radius:12px;  
+    cursor:pointer;  
+    background: linear-gradient(45deg,#38bdf8,#f472b6,#8b5cf6);  
+    color:white;  
+    box-shadow:0 5px 15px rgba(0,0,0,0.4);  
+    transition:0.3s;  
+  }  
+  button:hover { transform: translateY(-3px) scale(1.05); box-shadow:0 10px 25px rgba(0,0,0,0.6); }  
+  #result { margin-top:25px; transition:0.5s; }  
+  img {  
+    max-width:220px;  
+    border-radius:15px;  
+    border:3px solid #38bdf8;  
+    box-shadow:0 0 20px #f472b6,0 0 40px #8b5cf6;  
+    animation:pulse 2s infinite alternate;  
+  }  
+  @keyframes pulse {  
+    0% { transform: scale(1); box-shadow:0 0 10px #38bdf8,0 0 20px #8b5cf6; }  
+    100% { transform: scale(1.08); box-shadow:0 0 25px #38bdf8,0 0 50px #f472b6; }  
+  }  
+  .download-btn {  
+    margin-top:15px;  
+    padding:10px 20px;  
+    font-size:14px;  
+    font-weight:bold;  
+    border-radius:10px;  
+    background: linear-gradient(45deg,#22c55e,#16a34a,#15803d);  
+    color:white;  
+    text-decoration:none;  
+    display:inline-block;  
+    box-shadow:0 6px 20px rgba(0,0,0,0.6);  
+    transition:0.3s;  
+  }  
+  .download-btn:hover { transform: scale(1.08); box-shadow:0 10px 35px rgba(0,0,0,0.8); }  
+  .channel-btn {  
+    margin-top:30px;  
+    padding:12px 25px;  
+    font-size:14px;  
+    font-weight:bold;  
+    border-radius:12px;  
+    background: linear-gradient(45deg,#25d366,#128c7e,#34b7f1);  
+    color:white;  
+    text-decoration:none;  
+    box-shadow:0 8px 25px rgba(0,0,0,0.7);  
+    transition:0.3s;  
+    display:inline-block;  
+  }  
+  .channel-btn:hover { transform: translateY(-3px) scale(1.05) rotate(-2deg); box-shadow:0 15px 50px rgba(0,0,0,0.8); }  
+  .footer { margin-top:25px; font-size:12px; opacity:0.6; letter-spacing:1px; }  
+</style>  
+</head>  
+<body>  
 
-  </div>  <script>
-    const phoneInput = document.getElementById("phoneInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const resultDiv = document.getElementById("result");
-    const dpImage = document.getElementById("dpImage");
-    const openBtn = document.getElementById("openBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const errorMsg = document.getElementById("error");
+<h1>WHATSAPP PROFILE VIEWER</h1>  
 
-    function validateNumber() {
-      return /^\d{12}$/.test(phoneInput.value);
-    }
+<div id="input-container">  
+  <input type="text" id="phone" placeholder="923xxxxxxxxx" maxlength="12">  
+  <button onclick="getDP()">VIEW</button>  
+</div>  
 
-    phoneInput.addEventListener("input", () => {
-      searchBtn.disabled = !validateNumber();
-    });
+<div id="result"></div>  
 
-    searchBtn.addEventListener("click", async () => {
-      if (!validateNumber()) {
-        errorMsg.textContent = "❌ Please enter a valid 12-digit number.";
-        errorMsg.classList.remove("hidden");
-        return;
-      }
-      errorMsg.classList.add("hidden");
+<a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="channel-btn">JOIN CHANNEL</a>  
 
-      const phone = phoneInput.value;
-      const url = `/api/dp?phone=${phone}`;
-      
-      try {
-        dpImage.src = url;
-        openBtn.href = url;
-        downloadBtn.href = url;
-        resultDiv.classList.remove("hidden");
-      } catch (e) {
-        errorMsg.textContent = "❌ Failed to fetch profile picture.";
-        errorMsg.classList.remove("hidden");
-      }
-    });
+<div class="footer">by @CYBEREXPERTPK</div>  
 
-    resetBtn.addEventListener("click", () => {
-      phoneInput.value = "";
-      searchBtn.disabled = true;
-      resultDiv.classList.add("hidden");
-      errorMsg.classList.add("hidden");
-    });
+<script>  
+async function getDP(){    
+  const phone = document.getElementById('phone').value.trim();    
+  const resultDiv = document.getElementById('result');    
+  resultDiv.innerHTML = "⏳ Fetching...";    
 
-    searchBtn.disabled = true;
-  </script></body>
+  if(!phone){  
+    resultDiv.innerHTML = "⚠ Enter number";  
+    return;  
+  }  
+  if(phone.length !== 12 || !/^[0-9]+$/.test(phone)){  
+    resultDiv.innerHTML = "⚠ Number must be 12 digits";  
+    return;  
+  }  
+
+  try {  
+    const response = await fetch(`/api/dp?phone=${encodeURIComponent(phone)}`);  
+    if(!response.ok){   
+      resultDiv.innerHTML = "❌ Failed to connect server";   
+      return;   
+    }  
+
+    const blob = await response.blob();  
+    const contentType = response.headers.get("content-type");  
+
+    if(contentType && contentType.startsWith("image/")){  
+      const url = URL.createObjectURL(blob);  
+      resultDiv.innerHTML = `<img src="${url}" alt="DP"><br><a href="${url}" download="dp.jpg" class="download-btn">⬇ DOWNLOAD</a>`;  
+    } else {  
+      const text = await blob.text();  
+      resultDiv.innerHTML = `❌ No DP Found<br>${text}`;  
+    }  
+
+  } catch(err){  
+    resultDiv.innerHTML = "❌ Error fetching DP";  
+    console.error(err);  
+  }  
+}  
+</script>  
+
+</body>  
 </html>
