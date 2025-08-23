@@ -3,270 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WHATSAPP PROFILE VIEWER</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Ultra DP Viewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-card: #ffffff;
-    --text-primary: #121212;
-    --text-secondary: #6e6e73;
-    --accent-blue: #007aff;
-    --border-color: #e5e5e5;
-    --shadow-medium: rgba(0, 0, 0, 0.1);
-  }
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    font-family: 'Inter', sans-serif;
-    color: var(--text-primary);
+    font-family: 'Orbitron', sans-serif;
+    background: radial-gradient(circle at top left, #0f172a, #111827);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    overflow-x: hidden;
-    background: radial-gradient(circle at center, #0d0d10, #0d0d10);
-    transition: background 2s ease-in-out;
-  }
-  .app-container {
-    width: 100%;
-    max-width: 480px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px var(--shadow-medium);
-    padding: 2.5rem 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2.5rem;
     text-align: center;
-    position: relative;
-    z-index: 10;
   }
-  .header {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  h1 {
+    font-size: 2.8rem;
+    background: linear-gradient(90deg, #38bdf8, #f472b6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: neon 2s ease-in-out infinite alternate;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
   }
-  .title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.02rem;
-    color: var(--text-primary);
+  @keyframes neon {
+    0% { text-shadow: 0 0 5px #38bdf8, 0 0 10px #f472b6; }
+    100% { text-shadow: 0 0 20px #38bdf8, 0 0 40px #f472b6, 0 0 60px #8b5cf6; }
   }
-  .subtitle {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+  #input-container { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  input {
+    width: 220px;
+    padding:12px;
+    border-radius:12px;
+    border:2px solid #38bdf8;
+    outline:none;
+    font-size:16px;
+    text-align:center;
+    background: rgba(255,255,255,0.05);
+    color:#fff;
+    transition:0.3s;
   }
-  .input-form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 1rem;
-    align-items: center;
+  input:focus { border-color:#f472b6; box-shadow:0 0 15px #f472b6; }
+  button {
+    padding:12px 25px;
+    font-size:16px;
+    font-weight:bold;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    background: linear-gradient(45deg,#38bdf8,#f472b6,#8b5cf6);
+    color:white;
+    box-shadow:0 5px 15px rgba(0,0,0,0.4);
+    transition:0.3s;
   }
-  .input-group {
-    width: 100%;
-    max-width: 320px;
+  button:hover { transform: translateY(-3px) scale(1.05); box-shadow:0 10px 25px rgba(0,0,0,0.6); }
+  #result { margin-top:25px; transition:0.5s; }
+  img {
+    max-width:220px;
+    border-radius:15px;
+    border:3px solid #38bdf8;
+    box-shadow:0 0 20px #f472b6,0 0 40px #8b5cf6;
+    animation:pulse 2s infinite alternate;
   }
-  #phone {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    background: #f8f8f8;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    text-align: center;
-    outline: none;
-    transition: all 0.2s ease-in-out;
+  @keyframes pulse {
+    0% { transform: scale(1); box-shadow:0 0 10px #38bdf8,0 0 20px #8b5cf6; }
+    100% { transform: scale(1.08); box-shadow:0 0 25px #38bdf8,0 0 50px #f472b6; }
   }
-  #phone::placeholder {
-    color: var(--text-secondary);
-    opacity: 0.8;
+  .download-btn {
+    margin-top:15px;
+    padding:10px 20px;
+    font-size:14px;
+    font-weight:bold;
+    border-radius:12px;
+    background: linear-gradient(45deg,#06b6d4,#3b82f6);
+    color:white;
+    text-decoration:none;
+    display:inline-block;
+    box-shadow:0 5px 20px rgba(0,0,0,0.5);
+    transition:0.3s;
   }
-  #phone:focus {
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+  .download-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow:0 10px 30px rgba(0,0,0,0.7); }
+  .channel-btn {
+    margin-top:30px;
+    padding:12px 25px;
+    font-size:14px;
+    font-weight:bold;
+    border-radius:12px;
+    background: linear-gradient(45deg,#25d366,#128c7e,#34b7f1);
+    color:white;
+    text-decoration:none;
+    box-shadow:0 8px 25px rgba(0,0,0,0.7);
+    transition:0.3s;
+    display:inline-block;
   }
-  .cta-button {
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    font-weight: 500;
-    background-color: var(--accent-blue);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-  }
-  .cta-button:hover {
-    background-color: #0066cc;
-    box-shadow: 0 4px 10px var(--shadow-medium);
-  }
-  .cta-button:active {
-    transform: scale(0.98);
-  }
-  .result-area {
-    width: 100%;
-    min-height: 200px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .result-placeholder, .message-box {
-    width: 100%;
-    max-width: 200px;
-    height: 200px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    border: 1px dashed var(--border-color);
-    border-radius: 50%;
-    padding: 1rem;
-  }
-  .result-image {
-    width: 200px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid var(--accent-blue);
-    box-shadow: 0 5px 20px var(--shadow-medium);
-  }
-  .channel-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.75rem 1.5rem;
-    background-color: #25d366;
-    color: white;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-    margin-top: 1rem;
-  }
-  .channel-link:hover {
-    background-color: #128c7e;
-    box-shadow: 0 4px 10px var(--shadow-medium);
-  }
-  .whatsapp-icon {
-    width: 16px;
-    fill: white;
-  }
-  .footer {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-top: 2rem;
-  }
-  @media (min-width: 480px) {
-    .input-form {
-      flex-direction: row;
-      gap: 1.5rem;
-    }
-  }
+  .channel-btn:hover { transform: translateY(-3px) scale(1.05) rotate(-2deg); box-shadow:0 15px 50px rgba(0,0,0,0.8); }
+  .footer { margin-top:25px; font-size:12px; opacity:0.6; letter-spacing:1px; }
 </style>
 </head>
 <body>
 
-<div class="app-container">
-  <header class="header">
-    <h1 class="title">WHATSAPP PROFILE VIEWER</h1>
-    <p class="subtitle">Enter a 12-digit number to fetch the profile picture.</p>
-  </header>
+<h1>DP VIEWER</h1>
 
-  <form id="dp-form" class="input-form">
-    <div class="input-group">
-      <input type="text" id="phone" name="phone" placeholder="923xxxxxxxxx" maxlength="12" pattern="[0-9]{12}">
-    </div>
-    <button type="submit" class="cta-button">FETCH</button>
-  </form>
-
-  <div id="result" class="result-area">
-    <div class="result-placeholder">
-      <p>Profile picture will appear here.</p>
-    </div>
-  </div>
-
-  <a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" rel="noopener noreferrer" class="channel-link">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="whatsapp-icon"><path d="M380.9 97.1C339.4 55.6 283.8 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.2 29.2 111.4L6 455.1l111.9-29.2c34.2 19.1 72.3 29.2 111.4 29.2h.1c122.3 0 222-99.6 222-222 0-59.9-23.6-115.6-65.1-157.1zm-101.4 140.4l-58.1-1.2c-19.1 0-38.3 0-57.4 0-14.7 0-26.6 11.9-26.6 26.6 0 14.7 11.9 26.6 26.6 26.6h57.4c19.1 0 38.3 0 57.4 0 14.7 0 26.6-11.9 26.6-26.6 0-14.7-11.9-26.6-26.6-26.6z"/></svg>
-    JOIN CHANNEL
-  </a>
-
-  <footer class="footer">
-    <p>by <a href="#" style="color:var(--text-secondary); text-decoration: none;">@CYBEREXPERTPK</a></p>
-  </footer>
+<div id="input-container">
+  <input type="text" id="phone" placeholder="12-digit number" maxlength="12" oninput="this.value=this.value.replace(/\\D/g,'')">
+  <button onclick="getDP()">VIEW</button>
 </div>
 
+<div id="result"></div>
+
+<a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="channel-btn">JOIN CHANNEL</a>
+
+<div class="footer">BY TG @CYBEREXPERTPK</div>
+
 <script>
-  (function() {
-    'use strict';
-    const form = document.getElementById('dp-form');
-    const phoneInput = document.getElementById('phone');
-    const resultArea = document.getElementById('result');
-    const phoneRegex = /^[0-9]{12}$/;
+async function getDP(){
+  const phone = document.getElementById('phone').value.trim();
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = "⏳ Fetching...";
 
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
+  if(!phone || phone.length !== 10){
+    resultDiv.innerHTML = "⚠ Enter valid 12-digit number";
+    return;
+  }
+
+  try {
+    // Call Node.js backend proxy
+    const response = await fetch(`/api/dp?phone=${encodeURIComponent(phone)}`);
+    if(!response.ok){ 
+      resultDiv.innerHTML = "❌ Failed to connect server"; 
+      return; 
     }
 
-    function changeBackgroundColor() {
-      const body = document.body;
-      const newColor = getRandomColor();
-      body.style.background = `radial-gradient(circle at center, ${newColor}, #0d0d10)`;
+    const blob = await response.blob();
+    const contentType = response.headers.get("content-type");
+
+    if(contentType && contentType.startsWith("image/")){
+      const url = URL.createObjectURL(blob);
+      resultDiv.innerHTML = `
+        <img src="${url}" alt="DP">
+        <br>
+        <a href="${url}" download="DP_${phone}.jpg" class="download-btn">⬇ Download DP</a>
+      `;
+    } else {
+      const text = await blob.text();
+      resultDiv.innerHTML = `❌ No DP Found<br>${text}`;
     }
-    
-    setInterval(changeBackgroundColor, 2000);
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const phone = phoneInput.value.trim();
-
-      if (!phoneRegex.test(phone)) {
-        resultArea.innerHTML = `<div class="message-box"><p>Invalid ID.<br>Enter a 12-digit number.</p></div>`;
-        return;
-      }
-      
-      resultArea.innerHTML = `<div class="message-box"><p>Fetching...</p></div>`;
-
-      try {
-        const response = await fetch(\`/api/dp?phone=\${encodeURIComponent(phone)}\`);
-        if (!response.ok) {
-          resultArea.innerHTML = `<div class="message-box"><p>❌ Server error.<br>Please try again.</p></div>`;
-          return;
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.startsWith("image/")) {
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          resultArea.innerHTML = `<img src="\${url}" alt="WhatsApp profile picture" class="result-image">`;
-        } else {
-          const text = await response.text();
-          resultArea.innerHTML = `<div class="message-box"><p>❌ No DP Found.<br>${text}</p></div>`;
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        resultArea.innerHTML = `<div class="message-box"><p>❌ An unexpected error occurred.</p></div>`;
-      }
-    });
-  })();
+  } catch(err){
+    resultDiv.innerHTML = "❌ Error fetching DP";
+    console.error(err);
+  }
+}
 </script>
 
 </body>
