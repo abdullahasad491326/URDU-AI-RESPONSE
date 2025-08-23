@@ -16,7 +16,6 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    overflow-x: hidden;
     text-align: center;
   }
   h1 {
@@ -114,18 +113,31 @@ async function getDP(){
     return;
   }
 
-  try{
+  try {
+    // ask backend for DP as blob (handles binary + text)
     const response = await fetch(`/api/dp?phone=${phone}`);
     if(!response.ok){ resultDiv.innerHTML = "❌ failed to connect server"; return; }
 
-    const data = await response.text();
-    if(data.startsWith("http")){
-      resultDiv.innerHTML = `<img src="${data}" alt="DP">`;
+    const contentType = response.headers.get("content-type");
+
+    if(contentType && contentType.startsWith("image/")){
+      // if backend returned real image
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      resultDiv.innerHTML = `<img src="${url}" alt="DP">`;
     } else {
-      resultDiv.innerHTML = `<span>❌ No DP Found</span><br>${data}`;
+      // otherwise treat it as text
+      const text = await response.text();
+      if(text.startsWith("http")){
+        resultDiv.innerHTML = `<img src="${text}" alt="DP">`;
+      } else {
+        resultDiv.innerHTML = `❌ No DP Found<br>${text}`;
+      }
     }
+
   } catch(err){
     resultDiv.innerHTML = "❌ error fetching DP";
+    console.error(err);
   }
 }
 </script>
