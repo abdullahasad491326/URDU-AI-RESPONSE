@@ -38,7 +38,6 @@ app.get('/api/dp', async (req, res) => {
         // Allow frontend to fetch
         res.set("Access-Control-Allow-Origin", "*");
 
-        // If response is a link, send it back
         res.send(response.data);
     } catch (err) {
         console.error("DP API Error:", err.message);
@@ -46,7 +45,14 @@ app.get('/api/dp', async (req, res) => {
     }
 });
 
+// ================== Serve Profile.html ==================
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Profile.html'));
+});
+
 // ================== Start Server ==================
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`➡️  ChatGPT UI: http://localhost:${PORT}/`);
+    console.log(`➡️  DP Viewer UI: http://localhost:${PORT}/profile`);
 });
