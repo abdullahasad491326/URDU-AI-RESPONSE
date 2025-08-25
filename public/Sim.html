@@ -7,217 +7,41 @@
   <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    :root {
-      --primary: #00c4ff;
-      --secondary: #8e44ad;
-      --background: #0a0015;
-      --card-bg: rgba(2, 0, 5, 0.8);
-      --text-light: #f0f8ff;
-      --text-muted: #64b5f6;
-      --border-color: rgba(142, 68, 173, 0.4);
-      --error: #FF5722;
-      --success: #2ECC71;
-    }
-    body[data-theme="emerald"] {
-      --primary: #00e8c7;
-      --secondary: #00a896;
-      --background: #001515;
-      --card-bg: rgba(0, 5, 5, 0.8);
-      --border-color: rgba(0, 168, 150, 0.4);
-    }
-    body[data-theme="crimson"] {
-      --primary: #ff5722;
-      --secondary: #c0392b;
-      --background: #150500;
-      --card-bg: rgba(5, 2, 0, 0.8);
-      --border-color: rgba(192, 57, 43, 0.4);
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      background-color: var(--background);
-      font-family: 'Bai Jamjuree', sans-serif;
-      color: var(--text-light);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      max-width: 500px;
-      width: 100%;
-    }
-    .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(5px);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 30px;
-      margin-bottom: 25px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease;
-    }
-    .card:hover {
-      transform: translateY(-3px);
-    }
-    h2 {
-      font-family: 'Syncopate', sans-serif;
-      font-size: 1.8rem;
-      text-align: center;
-      margin-bottom: 25px;
-      color: var(--primary);
-    }
-    h2 .icon {
-      font-size: 1.2em;
-      margin-right: 10px;
-    }
-    .input-wrapper {
-      position: relative;
-      margin-bottom: 20px;
-    }
-    input[type="text"], textarea {
-      width: 100%;
-      padding: 12px 15px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      outline: none;
-      background: transparent;
-      color: var(--text-light);
-      font-family: 'Bai Jamjuree', sans-serif;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    input::placeholder, textarea::placeholder {
-      color: var(--text-muted);
-    }
-    input:focus, textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 5px var(--primary);
-    }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .clear-input {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 16px;
-      cursor: pointer;
-      display: none;
-    }
-    button {
-      width: 100%;
-      padding: 12px 0;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      background: var(--secondary);
-      color: white;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: background-color 0.2s ease, transform 0.2s ease;
-    }
-    button:hover {
-      background: var(--primary);
-      transform: translateY(-2px);
-    }
-    .result, .error {
-      padding: 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      line-height: 1.6;
-      text-align: center;
-      background: rgba(0,0,0,0.5);
-      border: 1px dashed var(--border-color);
-    }
-    .result strong {
-      color: var(--primary);
-    }
-    .result.initial {
-      color: var(--text-muted);
-    }
-    .error {
-      background: rgba(255, 69, 0, 0.2);
-      color: var(--error);
-      border-color: var(--error);
-    }
-    .spinner {
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      border-top: 3px solid var(--primary);
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-left: 8px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .whatsapp-button {
-      position: fixed;
-      right: 25px;
-      bottom: 25px;
-      padding: 12px 20px;
-      background: var(--success);
-      color: white;
-      border-radius: 50px;
-      text-decoration: none;
-      font-weight: 600;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease;
-    }
-    .whatsapp-button:hover {
-      transform: scale(1.05);
-    }
-    .whatsapp-button .icon {
-      margin-right: 8px;
-    }
-    .theme-switcher {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 25px;
-      padding: 10px;
-      border-radius: 50px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .theme-button {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .theme-button:hover {
-      transform: scale(1.1);
-    }
-    .theme-button.active {
-      border-color: var(--primary);
-    }
-    .theme-button[data-theme="default"] {
-      background-color: #00c4ff;
-    }
-    .theme-button[data-theme="emerald"] {
-      background-color: #00e8c7;
-    }
-    .theme-button[data-theme="crimson"] {
-      background-color: #ff5722;
-    }
+    /* --- same design as you gave --- */
+    :root { --primary:#00c4ff; --secondary:#8e44ad; --background:#0a0015;
+      --card-bg:rgba(2,0,5,0.8); --text-light:#f0f8ff; --text-muted:#64b5f6;
+      --border-color:rgba(142,68,173,0.4); --error:#FF5722; --success:#2ECC71;}
+    body[data-theme="emerald"] {--primary:#00e8c7;--secondary:#00a896;--background:#001515;--card-bg:rgba(0,5,5,0.8);--border-color:rgba(0,168,150,0.4);}
+    body[data-theme="crimson"] {--primary:#ff5722;--secondary:#c0392b;--background:#150500;--card-bg:rgba(5,2,0,0.8);--border-color:rgba(192,57,43,0.4);}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background-color:var(--background);font-family:'Bai Jamjuree',sans-serif;color:var(--text-light);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+    .container{max-width:500px;width:100%}
+    .card{background:var(--card-bg);backdrop-filter:blur(5px);border:1px solid var(--border-color);border-radius:12px;padding:30px;margin-bottom:25px;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s ease}
+    .card:hover{transform:translateY(-3px)}
+    h2{font-family:'Syncopate',sans-serif;font-size:1.8rem;text-align:center;margin-bottom:25px;color:var(--primary)}
+    h2 .icon{font-size:1.2em;margin-right:10px}
+    .input-wrapper{position:relative;margin-bottom:20px}
+    input[type="text"],textarea{width:100%;padding:12px 15px;font-size:16px;border-radius:8px;border:1px solid var(--border-color);outline:none;background:transparent;color:var(--text-light);font-family:'Bai Jamjuree',sans-serif;transition:border-color 0.2s ease,box-shadow 0.2s ease}
+    input::placeholder,textarea::placeholder{color:var(--text-muted)}
+    input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 5px var(--primary)}
+    .clear-input{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;display:none}
+    button{width:100%;padding:12px 0;font-size:16px;font-weight:600;border:none;border-radius:8px;background:var(--secondary);color:white;cursor:pointer;text-transform:uppercase;transition:background-color 0.2s ease,transform 0.2s ease}
+    button:hover{background:var(--primary);transform:translateY(-2px)}
+    .result,.error{padding:20px;border-radius:8px;font-size:14px;line-height:1.6;text-align:center;background:rgba(0,0,0,0.5);border:1px dashed var(--border-color)}
+    .result strong{color:var(--primary)}
+    .result.initial{color:var(--text-muted)}
+    .error{background:rgba(255,69,0,0.2);color:var(--error);border-color:var(--error)}
+    .spinner{border:3px solid rgba(255,255,255,0.2);border-top:3px solid var(--primary);border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-left:8px}
+    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .whatsapp-button{position:fixed;right:25px;bottom:25px;padding:12px 20px;background:var(--success);color:white;border-radius:50px;text-decoration:none;font-weight:600;box-shadow:0 4px 10px rgba(0,0,0,0.3);transition:transform 0.2s ease}
+    .whatsapp-button:hover{transform:scale(1.05)}
+    .theme-switcher{display:flex;gap:15px;margin-bottom:25px;padding:10px;border-radius:50px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1)}
+    .theme-button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform 0.2s ease,border-color 0.2s ease}
+    .theme-button:hover{transform:scale(1.1)}
+    .theme-button.active{border-color:var(--primary)}
+    .theme-button[data-theme="default"]{background-color:#00c4ff}
+    .theme-button[data-theme="emerald"]{background-color:#00e8c7}
+    .theme-button[data-theme="crimson"]{background-color:#ff5722}
   </style>
 </head>
 <body>
@@ -242,61 +66,21 @@
     <i class="fab fa-whatsapp icon"></i> Join Channel
   </a>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const themeButtons = document.querySelectorAll('.theme-button');
-      const savedTheme = localStorage.getItem('selectedTheme');
-      if (savedTheme) {
-        document.body.dataset.theme = savedTheme;
-        themeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === savedTheme));
-      } else {
-        themeButtons[0].classList.add('active');
-      }
-      themeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          document.body.dataset.theme = button.dataset.theme;
-          themeButtons.forEach(btn => btn.classList.remove('active'));
-          button.classList.add('active');
-          localStorage.setItem('selectedTheme', button.dataset.theme);
-        });
-      });
-      document.querySelectorAll('.input-wrapper input, .input-wrapper textarea').forEach(input => {
-        const clearButton = input.parentElement.querySelector('.clear-input');
-        if (clearButton) {
-          input.addEventListener('input', () => clearButton.style.display = input.value.length > 0 ? 'block' : 'none');
-          clearButton.addEventListener('click', () => {
-            input.value = '';
-            clearButton.style.display = 'none';
-            input.focus();
-          });
-          if (input.value.length > 0) clearButton.style.display = 'block';
-        }
-      });
-    });
-
     async function searchData() {
       const inputField = document.getElementById('searchInput');
       const simResultDiv = document.getElementById('simResult');
       const simErrorDiv = document.getElementById('simError');
       let input = inputField.value.trim().replace(/-/g, ''); // Remove dashes for CNIC
 
-      simResultDiv.classList.remove('error', 'initial');
+      simResultDiv.classList.remove('error','initial');
       simResultDiv.innerHTML = `<p>Executing data trace... <span class="spinner"></span></p>`;
       simErrorDiv.style.display = 'none';
 
-      // Determine if it's a mobile number or CNIC
+      // check input type
       const isMobile = /^03\d{9}$/.test(input);
       const isCnic = /^\d{13}$/.test(input);
 
-      let apiUrl = '';
-      let requestBody = {};
-
-      if (isMobile) {
-        apiUrl = '/mobile-search'; // Assumed new endpoint for mobile number search
-        requestBody = { mobileNumber: input };
-      } else if (isCnic) {
-        apiUrl = '/cnic-search'; // Assumed new endpoint for CNIC search
-        requestBody = { cnicNumber: input };
-      } else {
+      if (!isMobile && !isCnic) {
         simErrorDiv.style.display = 'block';
         simErrorDiv.innerHTML = '⚠️ Invalid format. Please enter a valid 11-digit mobile number or 13-digit CNIC.';
         simResultDiv.innerHTML = '';
@@ -304,22 +88,21 @@
       }
 
       try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch('/search-data', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify(isMobile ? { mobileNumber: input } : { cnicNumber: input })
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          const errorResponse = await response.json();
           simErrorDiv.style.display = 'block';
-          simErrorDiv.innerHTML = errorResponse.error || '❌ CURRENTLY SERVICE DISABLED BY WEB OWNER.';
+          simErrorDiv.innerHTML = data.error || '❌ Service error.';
           simResultDiv.innerHTML = '';
           return;
         }
 
-        const data = await response.json();
-        
         if (data?.name && data?.cnic && data?.address) {
           simResultDiv.innerHTML = `
             <strong>NAME:</strong> ${data.name}<br/>
@@ -327,13 +110,12 @@
             <strong>ADDRESS:</strong> ${data.address}<br/>
             <strong>STATUS:</strong> <span style='color: var(--success);'>ACQUIRED</span>
           `;
-          simErrorDiv.style.display = 'none';
         } else {
           simErrorDiv.style.display = 'block';
           simErrorDiv.innerHTML = '❌ Trace incomplete.';
           simResultDiv.innerHTML = '';
         }
-      } catch (error) {
+      } catch (err) {
         simErrorDiv.style.display = 'block';
         simErrorDiv.innerHTML = '❌ Connection error.';
         simResultDiv.innerHTML = '';
