@@ -19,45 +19,51 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/api/chat', async (req, res) => {
     try {
         const { text } = req.body;
-        if (!text) {
-            return res.status(400).json({ error: "❌ No text provided" });
-        }
+        if (!text) return res.status(400).json({ error: "❌ No text provided" });
 
         const response = await axios.get(`https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(text)}`);
         res.json(response.data);
-
     } catch (err) {
         console.error("Chat API Error:", err.message);
         res.status(500).json({ error: "❌ Failed to fetch AI response" });
     }
 });
 
-// ================== DP Viewer Proxy ==================
+// ================== DP Viewer Proxy (Random Device Headers) ==================
 app.get('/api/dp', async (req, res) => {
     try {
         const phone = req.query.phone;
-        if (!phone) {
-            return res.status(400).json({ error: "❌ Phone number required" });
-        }
+        if (!phone) return res.status(400).json({ error: "❌ Phone number required" });
 
         const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${encodeURIComponent(phone)}`;
+
+        // Random user-agent and platform
+        const userAgents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
+            "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
+        ];
+        const platforms = ['Windows', 'Macintosh', 'Linux', 'iPhone', 'Android'];
+
+        const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+        const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
 
         const response = await axios.get(apiUrl, {
             responseType: 'arraybuffer',
             headers: {
                 "Host": "dpview.ilyashassan4u.workers.dev",
-                'sec-ch-ua-platform': '"Android"',
-                "user-agent": "Mozilla/5.0 (Linux; Android 12; CPH2127 Build/RKQ1.211119.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.94 Mobile Safari/537.36",
-                'sec-ch-ua': '"Not;A=Brand";v="99", "Android WebView";v="139", "Chromium";v="139"',
-                "sec-ch-ua-mobile": "?1",
+                "user-agent": randomUA,
+                "sec-ch-ua-platform": `"${randomPlatform}"`,
+                "sec-ch-ua-mobile": randomPlatform === "Android" || randomPlatform === "iPhone" ? "?1" : "?0",
                 "accept": "*/*",
                 "origin": "https://www.trickyworlds.com",
-                "x-requested-with": "mark.via.gp",
+                "x-requested-with": "XMLHttpRequest",
                 "sec-fetch-site": "cross-site",
                 "sec-fetch-mode": "cors",
                 "sec-fetch-dest": "empty",
                 "referer": "https://www.trickyworlds.com/",
-                "accept-language": "en-PK,en-US;q=0.9,en;q=0.8",
+                "accept-language": "en-US,en;q=0.9",
                 "priority": "u=1, i"
             }
         });
@@ -105,9 +111,7 @@ function resetIpCountsIfNeeded(ip) {
 
 // --- IP Block Middleware ---
 app.use((req, res, next) => {
-    if (blockedIPs.has(req.ip)) {
-        return res.status(403).json({ error: 'Your IP is blocked by admin.' });
-    }
+    if (blockedIPs.has(req.ip)) return res.status(403).json({ error: 'Your IP is blocked by admin.' });
     next();
 });
 
@@ -133,9 +137,7 @@ app.get('/admin', (req, res) => {
 // ================== Operator Check ==================
 app.get('/proxy', async (req, res) => {
     const number = req.query.number;
-    if (!number) {
-        return res.status(400).json({ error: 'Number parameter missing' });
-    }
+    if (!number) return res.status(400).json({ error: 'Number parameter missing' });
     try {
         const apiRes = await fetch(`https://www.easyload.com.pk/dingconnect.php?action=GetProviders&accountNumber=${number}`);
         if (!apiRes.ok) throw new Error('API request failed');
@@ -152,54 +154,41 @@ app.post('/search-data', async (req, res) => {
     const cnicNumber = req.body.cnicNumber;
 
     let searchParam = '';
-    let isCnicSearch = false;
 
-    if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) {
-        searchParam = mobileNumber;
-        isCnicSearch = false;
-    } else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) {
-        searchParam = cnicNumber;
-        isCnicSearch = true;
-    } else {
-        return res.status(400).json({ error: 'Invalid or missing mobile number or CNIC' });
-    }
-    
-    // Determine the API endpoint based on the search type
-    const endpoint = isCnicSearch ? 'https://minahilsimsdata.pro/cnic-search.php' : 'https://minahilsimsdata.pro/search.php';
-    const body = isCnicSearch ? { cnicNumber: searchParam } : { mobileNumber: searchParam };
-    
+    if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) searchParam = mobileNumber;
+    else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) searchParam = cnicNumber;
+    else return res.status(400).json({ error: 'Invalid or missing mobile number or CNIC' });
+
     try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
+        const postData = new URLSearchParams();
+        postData.append('action', 'fetch_simdata');
+        postData.append('nonce', '8106c46dfb');
+        postData.append('track', searchParam);
+
+        const response = await axios.post('https://simdataupdate.com/wp-admin/admin-ajax.php', postData.toString(), {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Referer': 'https://minahilsimsdata.pro/',
-                'Origin': 'https://minahilsimsdata.pro'
+                'Origin': 'https://simdataupdate.com',
+                'Referer': 'https://simdataupdate.com/',
+                'User-Agent': 'Mozilla/5.0'
             },
-            body: new URLSearchParams(body)
+            timeout: 15000
         });
-        
-        const text = await response.text();
-        
-        if (text.includes('Data Not Found')) {
-            return res.status(404).json({ error: 'Data Not Found' });
-        }
-        
-        const dom = new JSDOM(text);
-        const cells = [...dom.window.document.querySelectorAll('td')].map(td => td.textContent.trim()).filter(Boolean);
-        
-        const cnic = cells.find(c => /^\d{13}$/.test(c));
-        if (!cnic) return res.status(404).json({ error: 'CNIC not found' });
-        
-        const cnicIndex = cells.indexOf(cnic);
-        const name = cells.slice(1, cnicIndex).join(' ');
-        const address = cells.slice(cnicIndex + 1).join(' ');
-        
-        res.json({ name, cnic, address });
-        
+
+        const data = response.data?.data?.Mobile?.[0];
+
+        if (!data) return res.status(404).json({ error: '❌ No data found' });
+
+        res.json({
+            name: data.Name || 'N/A',
+            mobile: data.Mobile || 'N/A',
+            cnic: data.CNIC || 'N/A',
+            address: data.Address || 'N/A'
+        });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('SIM API Error:', error.message);
+        res.status(500).json({ error: '❌ Failed to fetch SIM data' });
     }
 });
 
@@ -208,68 +197,31 @@ app.post('/send-sms', (req, res) => {
     const { mobile, message } = req.body;
     const ip = req.ip;
 
-    if (!mobile || !/^03\d{9}$/.test(mobile)) {
-        return res.status(400).json({ error: 'Invalid or missing mobile number' });
-    }
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-        return res.status(400).json({ error: 'Message is required' });
-    }
+    if (!mobile || !/^03\d{9}$/.test(mobile)) return res.status(400).json({ error: 'Invalid or missing mobile number' });
+    if (!message || typeof message !== 'string' || message.trim().length === 0) return res.status(400).json({ error: 'Message is required' });
 
     resetIpCountsIfNeeded(ip);
-    if (ipSmsCount[ip].count >= SMS_LIMIT_PER_IP_PER_DAY) {
-        return res.status(429).json({ error: `SMS limit reached: max ${SMS_LIMIT_PER_IP_PER_DAY} messages per day per IP.` });
-    }
+    if (ipSmsCount[ip].count >= SMS_LIMIT_PER_IP_PER_DAY) return res.status(429).json({ error: `SMS limit reached: max ${SMS_LIMIT_PER_IP_PER_DAY} messages per day per IP.` });
 
     const formattedMobile = mobile.startsWith("0") ? "92" + mobile.slice(1) : mobile;
-    
+
     smsLogs.push({ ip, mobile: formattedMobile, message, timestamp: new Date().toISOString(), type: 'send-sms' });
     ipSmsCount[ip].count++;
 
     console.log('Simulated SMS sent successfully:', { mobile: formattedMobile, message });
-    console.log('New log added. Current smsLogs:', smsLogs);
-
     res.json({ success: true, message: "SMS logged successfully." });
 });
 
 // ================== Admin APIs ==================
-app.get('/api/admin/logs', (req, res) => {
-    res.json({ success: true, logs: smsLogs });
-});
+app.get('/api/admin/logs', (req, res) => res.json({ success: true, logs: smsLogs }));
 
 let serviceStatus = true;
-app.get('/api/admin/status', (req, res) => {
-    res.json({ success: true, status: serviceStatus });
-});
-
-app.post('/api/admin/toggle-sms', (req, res) => {
-    serviceStatus = !serviceStatus;
-    res.json({ success: true, status: serviceStatus });
-});
-
-app.post('/api/admin/block-ip', (req, res) => {
-    const { ip } = req.body;
-    if (!ip) return res.status(400).json({ error: 'IP is required' });
-    blockedIPs.add(ip);
-    res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
-});
-
-app.post('/api/admin/unblock-ip', (req, res) => {
-    const { ip } = req.body;
-    if (!ip) return res.status(400).json({ error: 'IP is required' });
-    blockedIPs.delete(ip);
-    res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
-});
-
-app.get('/api/admin/blocked-ips', (req, res) => {
-    res.json({ success: true, blockedIps: Array.from(blockedIPs) });
-});
-
-app.get('/api/admin/stats', (req, res) => {
-    const totalMessages = smsLogs.length;
-    const uniqueIps = new Set(smsLogs.map(log => log.ip));
-    const totalVisitors = uniqueIps.size;
-    res.json({ success: true, totalMessages, totalVisitors });
-});
+app.get('/api/admin/status', (req, res) => res.json({ success: true, status: serviceStatus }));
+app.post('/api/admin/toggle-sms', (req, res) => { serviceStatus = !serviceStatus; res.json({ success: true, status: serviceStatus }); });
+app.post('/api/admin/block-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP is required' }); blockedIPs.add(ip); res.json({ success: true, blockedIPs: Array.from(blockedIPs) }); });
+app.post('/api/admin/unblock-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP is required' }); blockedIPs.delete(ip); res.json({ success: true, blockedIPs: Array.from(blockedIPs) }); });
+app.get('/api/admin/blocked-ips', (req, res) => res.json({ success: true, blockedIps: Array.from(blockedIPs) }));
+app.get('/api/admin/stats', (req, res) => { const totalMessages = smsLogs.length; const uniqueIps = new Set(smsLogs.map(log => log.ip)); const totalVisitors = uniqueIps.size; res.json({ success: true, totalMessages, totalVisitors }); });
 
 // ================== Start Server ==================
 app.listen(PORT, () => {
@@ -279,4 +231,3 @@ app.listen(PORT, () => {
     console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
     console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
 });
-    
