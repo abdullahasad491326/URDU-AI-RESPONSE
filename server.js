@@ -146,34 +146,57 @@ app.get('/proxy', async (req, res) => {
     }
 });
 
-// ================== SIM Search ==================
-app.post('/sim-search', async (req, res) => {
-    const mobile = req.body.mobileNumber;
-    if (!mobile || !/^03\d{9}$/.test(mobile)) {
-        return res.status(400).json({ error: 'Invalid or missing mobile number' });
+// ================== CNIC and Mobile Search ==================
+app.post('/search-data', async (req, res) => {
+    const mobileNumber = req.body.mobileNumber;
+    const cnicNumber = req.body.cnicNumber;
+
+    let searchParam = '';
+    let isCnicSearch = false;
+
+    if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) {
+        searchParam = mobileNumber;
+        isCnicSearch = false;
+    } else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) {
+        searchParam = cnicNumber;
+        isCnicSearch = true;
+    } else {
+        return res.status(400).json({ error: 'Invalid or missing mobile number or CNIC' });
     }
+    
+    // Determine the API endpoint based on the search type
+    const endpoint = isCnicSearch ? 'https://minahilsimsdata.pro/cnic-search.php' : 'https://minahilsimsdata.pro/search.php';
+    const body = isCnicSearch ? { cnicNumber: searchParam } : { mobileNumber: searchParam };
+    
     try {
-        const response = await fetch('https://minahilsimsdata.pro/search.php', {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                Referer: 'https://minahilsimsdata.pro/search.php',
-                Origin: 'https://minahilsimsdata.pro'
+                'Referer': 'https://minahilsimsdata.pro/',
+                'Origin': 'https://minahilsimsdata.pro'
             },
-            body: new URLSearchParams({ mobileNumber: mobile, submit: '' })
+            body: new URLSearchParams(body)
         });
+        
         const text = await response.text();
+        
         if (text.includes('Data Not Found')) {
             return res.status(404).json({ error: 'Data Not Found' });
         }
+        
         const dom = new JSDOM(text);
         const cells = [...dom.window.document.querySelectorAll('td')].map(td => td.textContent.trim()).filter(Boolean);
+        
         const cnic = cells.find(c => /^\d{13}$/.test(c));
         if (!cnic) return res.status(404).json({ error: 'CNIC not found' });
+        
         const cnicIndex = cells.indexOf(cnic);
         const name = cells.slice(1, cnicIndex).join(' ');
         const address = cells.slice(cnicIndex + 1).join(' ');
+        
         res.json({ name, cnic, address });
+        
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Server error' });
@@ -256,3 +279,4 @@ app.listen(PORT, () => {
     console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
     console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
 });
+    
