@@ -1,16 +1,24 @@
-# AI Chat Professional
+# 📱 SMS Sender | SIM Data Finder | Operator Checker  
 
-A modern, stylish, mobile-friendly AI chat application powered by [Dreaded AI API](https://api.dreaded.site/). Users can chat with an AI bot, get responses, and copy code snippets easily.
+A professional web application built with **Node.js + Express** that provides:  
+- ✅ SMS Sending System  
+- ✅ SIM Data Finder (basic operator info)  
+- ✅ Operator Checker  
+- ✅ Admin Panel for monitoring & logs  
 
 ---
 
-## Features
+## 🚀 Features  
+- User-friendly **SMS sending form** (Operator.html)  
+- **SIM data finder** for operator lookup  
+- **Operator checker** with real-time validation  
+- **Admin panel** to:  
+  - View logs  
+  - Monitor activity  
+  - Block abusive IPs  
+- Secure backend (no direct access without login)  
+- Clean, animated, responsive UI  
 
-- ✅ **AI-powered chat**: Chat with AI in real-time  
-- ✅ **Code block support**: Highlighted code with **copy button**  
-- ✅ **Mobile-friendly**: Fully responsive for mobile devices  
-- ✅ **Dark/Light Theme**: Toggle between themes  
-- ✅ **Colorful AI messages**: Each bot message appears in a random color  
-- ✅ **Professional UI/UX**: Smooth, modern design  
-- ✅ **Timestamps** for messages
-__
+---
+
+## 📂 Project Structure
