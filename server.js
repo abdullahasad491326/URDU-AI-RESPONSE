@@ -29,7 +29,7 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// ================== DP Viewer Proxy (Random Device Headers) ==================
+// ================== DP Viewer Proxy ==================
 app.get('/api/dp', async (req, res) => {
     try {
         const phone = req.query.phone;
@@ -37,7 +37,6 @@ app.get('/api/dp', async (req, res) => {
 
         const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${encodeURIComponent(phone)}`;
 
-        // Random user-agent and platform
         const userAgents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
@@ -82,7 +81,7 @@ app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Profile.html'));
 });
 
-// ================== Admin Configuration ==================
+// ================== Admin Config ==================
 const ADMIN_USERNAME = 'PAKCYBER';
 const ADMIN_PASSWORD = '82214760';
 
@@ -148,16 +147,14 @@ app.get('/proxy', async (req, res) => {
     }
 });
 
-// ================== CNIC and Mobile Search ==================
+// ================== CNIC and Mobile Search (Fixed) ==================
 app.post('/search-data', async (req, res) => {
-    const mobileNumber = req.body.mobileNumber;
-    const cnicNumber = req.body.cnicNumber;
-
+    const { mobileNumber, cnicNumber } = req.body;
     let searchParam = '';
 
     if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) searchParam = mobileNumber;
     else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) searchParam = cnicNumber;
-    else return res.status(400).json({ error: 'Invalid or missing mobile number or CNIC' });
+    else return res.status(400).json({ error: '❌ Invalid or missing mobile number or CNIC' });
 
     try {
         const postData = new URLSearchParams();
@@ -165,17 +162,26 @@ app.post('/search-data', async (req, res) => {
         postData.append('nonce', '8106c46dfb');
         postData.append('track', searchParam);
 
-        const response = await axios.post('https://simdataupdate.com/wp-admin/admin-ajax.php', postData.toString(), {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Origin': 'https://simdataupdate.com',
-                'Referer': 'https://simdataupdate.com/',
-                'User-Agent': 'Mozilla/5.0'
-            },
-            timeout: 15000
-        });
+        const response = await axios.post(
+            'https://simdataupdate.com/wp-admin/admin-ajax.php',
+            postData.toString(),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Origin': 'https://simdataupdate.com',
+                    'Referer': 'https://simdataupdate.com/',
+                    'User-Agent': 'Mozilla/5.0'
+                },
+                timeout: 15000
+            }
+        );
 
-        const data = response.data?.data?.Mobile?.[0];
+        let data = null;
+        if (response.data?.data?.Mobile) {
+            data = response.data.data.Mobile[0];
+        } else if (response.data?.data?.CNIC) {
+            data = response.data.data.CNIC[0];
+        }
 
         if (!data) return res.status(404).json({ error: '❌ No data found' });
 
