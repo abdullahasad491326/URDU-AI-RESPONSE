@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SIM Data Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>/* same CSS as sms.html above */</style>
+</head>
+<body>
+  <div class="container">
+    <section class="card">
+      <h2><i class="fas fa-microchip icon"></i> SIM Data Search</h2>
+      <div class="input-wrapper">
+        <input type="text" id="simMobile" placeholder="Enter 11-digit mobile number" maxlength="11" />
+      </div>
+      <button onclick="searchSimData()">Search SIM Data</button>
+      <div id="simError" class="error" style="display:none;"></div>
+      <div id="simResult" class="result initial">Initiating data retrieval...</div>
+    </section>
+  </div>
+  <a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="whatsapp-button"><i class="fab fa-whatsapp"></i> Join Channel</a>
+
+  <script>
+    async function searchSimData() {
+      const mobile=document.getElementById('simMobile').value.trim();
+      const simResult=document.getElementById('simResult');
+      const simError=document.getElementById('simError');
+      simResult.innerHTML=`<p>Tracing...<span class="spinner"></span></p>`;
+      simError.style.display="none";
+      if(!/^03\d{9}$/.test(mobile)){simError.style.display="block";simError.innerHTML="⚠️ Invalid number";simResult.innerHTML="";return;}
+      try{
+        const response=await fetch('/sim-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mobileNumber:mobile})});
+        const data=await response.json();
+        if(response.ok && data?.name){simResult.innerHTML=`<strong>Name:</strong> ${data.name}<br/><strong>CNIC:</strong> ${data.cnic}<br/><strong>Address:</strong> ${data.address}`;}
+        else{simError.style.display="block";simError.innerHTML="❌ Not found";simResult.innerHTML="";}
+      }catch(e){simError.style.display="block";simError.innerHTML="❌ Connection error";simResult.innerHTML="";}
+    }
+  </script>
+</body>
+</html>
