@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SIM Data Search - Developer Pak Updates ✅</title>
+  <title>Data Search (CNIC & Mobile) - Developer Pak Updates ✅</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -228,12 +228,12 @@
       <button class="theme-button" data-theme="crimson"></button>
     </div>
     <section class="card">
-      <h2><i class="fas fa-microchip icon"></i> SIM Data Search</h2>
+      <h2><i class="fas fa-microchip icon"></i> Data Search (CNIC & Mobile)</h2>
       <div class="input-wrapper">
-        <input type="text" id="simMobile" placeholder="Enter 11-digit mobile number" maxlength="11" />
+        <input type="text" id="searchInput" placeholder="Enter CNIC or mobile number" />
         <button class="clear-input"><i class="fas fa-times"></i></button>
       </div>
-      <button onclick="searchSimData()">Search SIM Data</button>
+      <button onclick="searchData()">Search Data</button>
       <div id="simError" class="error" style="display:none;"></div>
       <div id="simResult" class="result initial">Initiating data retrieval...</div>
     </section>
@@ -273,26 +273,43 @@
       });
     });
 
-    async function searchSimData() {
-      const mobileInput = document.getElementById('simMobile');
+    async function searchData() {
+      const inputField = document.getElementById('searchInput');
       const simResultDiv = document.getElementById('simResult');
       const simErrorDiv = document.getElementById('simError');
-      let mobile = mobileInput.value.trim();
+      let input = inputField.value.trim().replace(/-/g, ''); // Remove dashes for CNIC
+
       simResultDiv.classList.remove('error', 'initial');
       simResultDiv.innerHTML = `<p>Executing data trace... <span class="spinner"></span></p>`;
       simErrorDiv.style.display = 'none';
-      if (!/^03\d{9}$/.test(mobile)) {
+
+      // Determine if it's a mobile number or CNIC
+      const isMobile = /^03\d{9}$/.test(input);
+      const isCnic = /^\d{13}$/.test(input);
+
+      let apiUrl = '';
+      let requestBody = {};
+
+      if (isMobile) {
+        apiUrl = '/mobile-search'; // Assumed new endpoint for mobile number search
+        requestBody = { mobileNumber: input };
+      } else if (isCnic) {
+        apiUrl = '/cnic-search'; // Assumed new endpoint for CNIC search
+        requestBody = { cnicNumber: input };
+      } else {
         simErrorDiv.style.display = 'block';
-        simErrorDiv.innerHTML = '⚠️ Invalid number.';
+        simErrorDiv.innerHTML = '⚠️ Invalid format. Please enter a valid 11-digit mobile number or 13-digit CNIC.';
         simResultDiv.innerHTML = '';
         return;
       }
+
       try {
-        const response = await fetch('/sim-search', {
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobileNumber: mobile })
+          body: JSON.stringify(requestBody)
         });
+
         if (!response.ok) {
           const errorResponse = await response.json();
           simErrorDiv.style.display = 'block';
@@ -300,7 +317,9 @@
           simResultDiv.innerHTML = '';
           return;
         }
+
         const data = await response.json();
+        
         if (data?.name && data?.cnic && data?.address) {
           simResultDiv.innerHTML = `
             <strong>NAME:</strong> ${data.name}<br/>
