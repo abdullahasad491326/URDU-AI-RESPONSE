@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    /* --- same design as you gave --- */
+    /* --- same design --- */
     :root { --primary:#00c4ff; --secondary:#8e44ad; --background:#0a0015;
       --card-bg:rgba(2,0,5,0.8); --text-light:#f0f8ff; --text-muted:#64b5f6;
       --border-color:rgba(142,68,173,0.4); --error:#FF5722; --success:#2ECC71;}
@@ -70,13 +70,12 @@
       const inputField = document.getElementById('searchInput');
       const simResultDiv = document.getElementById('simResult');
       const simErrorDiv = document.getElementById('simError');
-      let input = inputField.value.trim().replace(/-/g, ''); // Remove dashes for CNIC
+      let input = inputField.value.trim().replace(/-/g, ''); 
 
       simResultDiv.classList.remove('error','initial');
       simResultDiv.innerHTML = `<p>Executing data trace... <span class="spinner"></span></p>`;
       simErrorDiv.style.display = 'none';
 
-      // check input type
       const isMobile = /^03\d{9}$/.test(input);
       const isCnic = /^\d{13}$/.test(input);
 
