@@ -137,17 +137,18 @@ app.get('/admin', (req, res) => {
 app.get('/proxy', async (req, res) => {
     const number = req.query.number;
     if (!number) return res.status(400).json({ error: 'Number parameter missing' });
+
     try {
-        const apiRes = await fetch(`https://www.easyload.com.pk/dingconnect.php?action=GetProviders&accountNumber=${number}`);
+        const apiRes = await fetch(`https://allnetworkdata.com/?number=${number}`);
         if (!apiRes.ok) throw new Error('API request failed');
-        const data = await apiRes.json();
-        res.json(data);
+        const data = await apiRes.text();
+        res.send(data);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch data' });
     }
 });
 
-// ================== CNIC and Mobile Search (Fixed) ==================
+// ================== CNIC and Mobile Search ==================
 app.post('/search-data', async (req, res) => {
     const { mobileNumber, cnicNumber } = req.body;
     let searchParam = '';
@@ -157,44 +158,11 @@ app.post('/search-data', async (req, res) => {
     else return res.status(400).json({ error: '❌ Invalid or missing mobile number or CNIC' });
 
     try {
-        const postData = new URLSearchParams();
-        postData.append('action', 'fetch_simdata');
-        postData.append('nonce', '8106c46dfb');
-        postData.append('track', searchParam);
-
-        const response = await axios.post(
-            'https://simdataupdate.com/wp-admin/admin-ajax.php',
-            postData.toString(),
-            {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Origin': 'https://simdataupdate.com',
-                    'Referer': 'https://simdataupdate.com/',
-                    'User-Agent': 'Mozilla/5.0'
-                },
-                timeout: 15000
-            }
-        );
-
-        let data = null;
-        if (response.data?.data?.Mobile) {
-            data = response.data.data.Mobile[0];
-        } else if (response.data?.data?.CNIC) {
-            data = response.data.data.CNIC[0];
-        }
-
-        if (!data) return res.status(404).json({ error: '❌ No data found' });
-
-        res.json({
-            name: data.Name || 'N/A',
-            mobile: data.Mobile || 'N/A',
-            cnic: data.CNIC || 'N/A',
-            address: data.Address || 'N/A'
-        });
-
+        const response = await axios.get(`https://allnetworkdata.com/?number=${searchParam}`);
+        res.send(response.data);
     } catch (error) {
-        console.error('SIM API Error:', error.message);
-        res.status(500).json({ error: '❌ Failed to fetch SIM data' });
+        console.error('API Error:', error.message);
+        res.status(500).json({ error: '❌ Failed to fetch data' });
     }
 });
 
