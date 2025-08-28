@@ -54,7 +54,11 @@
     <section id="result" class="mt-8 hidden">
       <div class="glass rounded-3xl p-4 border border-white/10">
         <h3 class="text-lg font-semibold mb-4">Download Options</h3>
-        <div id="buttons" class="space-y-4"></div>
+        <div id="buttons" class="flex flex-col gap-3">
+          <a id="mp4" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-semibold">🎥 Download MP4 [1]</a>
+          <a id="mp4hd" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-semibold">📺 Download MP4 HD</a>
+          <a id="mp3" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-pink-500 hover:bg-pink-600 font-semibold">🎶 Download MP3</a>
+        </div>
       </div>
     </section>
 
@@ -77,7 +81,6 @@
   <!-- Script -->
   <script>
     const el = (sel) => document.querySelector(sel);
-    const btns = el('#buttons');
     const resWrap = el('#result');
     const urlInput = el('#url');
 
@@ -85,7 +88,6 @@
       const url = urlInput.value.trim();
       if (!url) { alert('Please paste a TikTok URL'); return; }
 
-      btns.innerHTML = '<div class="text-slate-300">Fetching…</div>';
       resWrap.classList.remove('hidden');
 
       try {
@@ -97,32 +99,13 @@
         const data = await resp.json();
         if (!data.success) throw new Error('Failed to fetch TikTok data');
 
-        btns.innerHTML = '';
-        const rows = data.downloads.map(item => `
-          <div class="bg-black/30 border border-white/10 rounded-xl p-3">
-            <span class="block font-medium mb-2">${item.type}</span>
-            <div class="flex flex-wrap gap-2">
-              <a href="${item.link}" target="_blank" class="flex-1 min-w-[100px] text-center px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold">Open</a>
-              <button data-url="${item.link}" class="flex-1 min-w-[100px] text-center copy px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">Copy</button>
-              <a href="${item.link}" download class="flex-1 min-w-[100px] text-center px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-sm font-semibold">Download</a>
-            </div>
-          </div>
-        `);
+        // Assign direct links
+        el('#mp4').href   = data.downloads.find(d=>d.type.includes('MP4 [1]'))?.link || '#';
+        el('#mp4hd').href = data.downloads.find(d=>d.type.includes('MP4 HD'))?.link || '#';
+        el('#mp3').href   = data.downloads.find(d=>d.type.includes('MP3'))?.link || '#';
 
-        btns.innerHTML = rows.join('') || '<div class="text-rose-300">No links found.</div>';
-
-        btns.querySelectorAll('button.copy').forEach(b => {
-          b.addEventListener('click', async () => {
-            const u = b.getAttribute('data-url');
-            try { 
-              await navigator.clipboard.writeText(u); 
-              b.textContent = 'Copied!'; 
-              setTimeout(()=>b.textContent='Copy',1200); 
-            } catch {}
-          });
-        });
       } catch (e) {
-        btns.innerHTML = `<div class="text-rose-300">Error: ${e.message || e}</div>`;
+        alert("Error: " + (e.message || e));
       }
     }
 
