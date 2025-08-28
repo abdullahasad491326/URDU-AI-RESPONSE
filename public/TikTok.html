@@ -91,20 +91,6 @@
     const loader = el('#loading');
     const urlInput = el('#url');
 
-    // Force rename function
-    async function forceDownload(url, filename, anchorId) {
-      try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = el(anchorId);
-        a.href = blobUrl;
-        a.setAttribute("download", filename);
-      } catch (err) {
-        console.error("Download error:", err);
-      }
-    }
-
     async function fetchLinks() {
       const url = urlInput.value.trim();
       if (!url) { alert('Please paste a TikTok URL'); return; }
@@ -126,15 +112,10 @@
         loader.classList.add('hidden');
         buttons.classList.remove('hidden');
 
-        const prefix = "DEV-PAK-UPDATES";
-
-        const mp4Link   = data.downloads.find(d=>d.type.includes('MP4 [1]'))?.link;
-        const mp4HdLink = data.downloads.find(d=>d.type.includes('MP4 HD'))?.link;
-        const mp3Link   = data.downloads.find(d=>d.type.includes('MP3'))?.link;
-
-        if (mp4Link)   forceDownload(mp4Link,   `${prefix}.mp4`,   '#mp4');
-        if (mp4HdLink) forceDownload(mp4HdLink, `${prefix}-HD.mp4`, '#mp4hd');
-        if (mp3Link)   forceDownload(mp3Link,   `${prefix}.mp3`,   '#mp3');
+        // Assign direct links
+        el('#mp4').href   = data.downloads.find(d=>d.type.includes('MP4 [1]'))?.link || '#';
+        el('#mp4hd').href = data.downloads.find(d=>d.type.includes('MP4 HD'))?.link || '#';
+        el('#mp3').href   = data.downloads.find(d=>d.type.includes('MP3'))?.link || '#';
 
       } catch (e) {
         loader.textContent = "❌ Error: " + (e.message || e);
