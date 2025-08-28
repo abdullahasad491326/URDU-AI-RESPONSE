@@ -13,7 +13,15 @@
     body{ font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
     .glass{ background: var(--glass); backdrop-filter: blur(12px); }
     .shine{ position: relative; overflow: hidden; }
-    .shine:before{ content:''; position:absolute; inset:-200% -50%; background:radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 60%); animation: spin 12s linear infinite; }
+    /* Fix: pseudo-element should not block input */
+    .shine:before{ 
+      content:''; 
+      position:absolute; 
+      inset:-200% -50%; 
+      background:radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 60%); 
+      animation: spin 12s linear infinite; 
+      pointer-events: none; /* <-- THIS IS THE FIX */
+    }
     @keyframes spin{ to{ transform: rotate(360deg); } }
   </style>
 </head>
@@ -29,7 +37,13 @@
 
     <section class="glass shine rounded-3xl p-5 md:p-7 shadow-2xl border border-white/10">
       <div class="flex flex-col md:flex-row gap-3">
-        <input id="url" type="text" placeholder="Paste TikTok URL (e.g. https://vm.tiktok.com/...)" class="flex-1 rounded-2xl bg-black/30 border border-white/10 px-4 py-3 outline-none focus:ring-2 ring-indigo-400" />
+        <input 
+          id="url" 
+          type="text" 
+          placeholder="Paste TikTok URL (e.g. https://vm.tiktok.com/...)" 
+          class="flex-1 rounded-2xl bg-black/30 border border-white/10 px-4 py-3 outline-none focus:ring-2 ring-indigo-400" 
+          autocomplete="off"
+        />
         <button id="go" class="rounded-2xl px-6 py-3 bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 transition font-semibold">Fetch</button>
       </div>
       <p id="hint" class="mt-2 text-xs text-slate-400">We proxy via our backend with spoofed headers. Your real device info stays private.</p>
@@ -59,9 +73,10 @@
     const el = (sel) => document.querySelector(sel);
     const btns = el('#buttons');
     const resWrap = el('#result');
+    const urlInput = el('#url');
 
     async function fetchLinks() {
-      const url = el('#url').value.trim();
+      const url = urlInput.value.trim();
       if (!url) { alert('Please paste a TikTok URL'); return; }
 
       btns.innerHTML = '<div class="text-slate-300">Fetching…</div>';
@@ -76,12 +91,10 @@
         const data = await resp.json();
         if (data.status !== 'ok') throw new Error(data.message || 'Upstream error');
 
-        // Render meta
         if (data.thumb) el('#thumb').src = data.thumb;
         if (data.title) el('#title').textContent = data.title;
         if (data.videoSrc) el('#player').src = data.videoSrc;
 
-        // Build buttons (all)
         btns.innerHTML = '';
         const makeRow = (label, url) => `
           <div class="flex items-center gap-2 bg-black/30 border border-white/10 rounded-xl p-3">
@@ -91,13 +104,11 @@
             <a href="${url}" download class="px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-sm font-semibold">Download</a>
           </div>`;
 
-        // Prefer mapped quick links first
         const rows = [];
         if (data.map?.mp4) rows.push(makeRow('MP4 (No watermark)', data.map.mp4));
         if (data.map?.mp4_hd) rows.push(makeRow('MP4 HD', data.map.mp4_hd));
         if (data.map?.mp3) rows.push(makeRow('MP3 (Audio only)', data.map.mp3));
 
-        // Add any extra labeled links not already included
         const added = new Set(rows.map(r => (r.match(/href=\"([^\"]+)/)||[])[1]));
         (data.links || []).forEach(l => {
           if (!added.has(l.url)) rows.push(makeRow(l.label, l.url));
@@ -105,7 +116,6 @@
 
         btns.innerHTML = rows.join('') || '<div class="text-rose-300">No links found.</div>';
 
-        // Wire up copy buttons
         btns.querySelectorAll('button.copy').forEach(b => {
           b.addEventListener('click', async () => {
             const u = b.getAttribute('data-url');
@@ -118,7 +128,7 @@
     }
 
     el('#go').addEventListener('click', fetchLinks);
-    el('#url').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ fetchLinks(); }});
+    urlInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ fetchLinks(); }});
   </script>
 </body>
-  </html>
+</html>
