@@ -76,6 +76,51 @@ app.get('/api/dp', async (req, res) => {
     }
 });
 
+// ================== TikTok Downloader Proxy ==================
+app.post("/api/tiktok", async (req, res) => {
+    try {
+        const { url } = req.body;
+        if (!url) return res.status(400).json({ error: "❌ No TikTok URL provided" });
+
+        const userAgents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        ];
+        const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+
+        const response = await axios.post(
+            "https://savetik.co/api/ajaxSearch",
+            new URLSearchParams({ q: url, lang: "en" }).toString(),
+            {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    "User-Agent": randomUA,
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Origin": "https://savetik.co",
+                    "Referer": "https://savetik.co/en2",
+                },
+            }
+        );
+
+        const dom = new JSDOM(response.data.data || "");
+        const document = dom.window.document;
+
+        const downloads = [];
+        document.querySelectorAll("a").forEach(a => {
+            const link = a.href;
+            const type = a.textContent.trim();
+            if (link) downloads.push({ type, link });
+        });
+
+        res.json({ success: true, url, downloads });
+    } catch (err) {
+        console.error("TikTok API Error:", err.message);
+        res.status(500).json({ error: "❌ Failed to fetch TikTok video" });
+    }
+});
+
 // ================== Serve Profile.html ==================
 app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Profile.html'));
@@ -202,6 +247,7 @@ app.listen(PORT, () => {
     console.log(`✅ Server running at: http://localhost:${PORT}`);
     console.log(`➡️ ChatGPT UI: http://localhost:${PORT}/`);
     console.log(`➡️ DP Viewer UI: http://localhost:${PORT}/profile`);
+    console.log(`➡️ TikTok Downloader API: http://localhost:${PORT}/api/tiktok`);
     console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
     console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
 });
