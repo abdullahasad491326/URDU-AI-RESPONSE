@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pro TikTok Downloader</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{ --glass: rgba(255,255,255,0.08); }
+    body{ font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .glass{ background: var(--glass); backdrop-filter: blur(12px); }
+    .shine{ position: relative; overflow: hidden; }
+    .shine:before{ content:''; position:absolute; inset:-200% -50%; background:radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 60%); animation: spin 12s linear infinite; }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-slate-100">
+  <div class="max-w-4xl mx-auto px-4 py-10">
+
+    <header class="mb-8 text-center">
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-fuchsia-300 to-pink-300">Pro TikTok Downloader</span>
+      </h1>
+      <p class="mt-3 text-slate-300">Fast • Clean • All buttons (MP4 / HD / MP3) • No device fingerprint leak</p>
+    </header>
+
+    <section class="glass shine rounded-3xl p-5 md:p-7 shadow-2xl border border-white/10">
+      <div class="flex flex-col md:flex-row gap-3">
+        <input id="url" type="text" placeholder="Paste TikTok URL (e.g. https://vm.tiktok.com/...)" class="flex-1 rounded-2xl bg-black/30 border border-white/10 px-4 py-3 outline-none focus:ring-2 ring-indigo-400" />
+        <button id="go" class="rounded-2xl px-6 py-3 bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 transition font-semibold">Fetch</button>
+      </div>
+      <p id="hint" class="mt-2 text-xs text-slate-400">We proxy via our backend with spoofed headers. Your real device info stays private.</p>
+    </section>
+
+    <section id="result" class="mt-8 hidden">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="glass rounded-3xl p-4 border border-white/10">
+          <img id="thumb" src="" alt="thumbnail" class="w-full rounded-2xl object-cover aspect-video"/>
+          <h2 id="title" class="mt-4 text-xl font-bold line-clamp-3"></h2>
+          <video id="player" class="mt-4 w-full rounded-2xl" controls></video>
+        </div>
+
+        <div class="glass rounded-3xl p-4 border border-white/10">
+          <h3 class="text-lg font-semibold mb-4">Download Options</h3>
+          <div id="buttons" class="space-y-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-10 text-center text-xs text-slate-400">
+      Built with ❤️ — headers spoofed/rotated on the server to avoid device misuse.
+    </footer>
+  </div>
+
+  <script>
+    const el = (sel) => document.querySelector(sel);
+    const btns = el('#buttons');
+    const resWrap = el('#result');
+
+    async function fetchLinks() {
+      const url = el('#url').value.trim();
+      if (!url) { alert('Please paste a TikTok URL'); return; }
+
+      btns.innerHTML = '<div class="text-slate-300">Fetching…</div>';
+      resWrap.classList.remove('hidden');
+
+      try {
+        const resp = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await resp.json();
+        if (data.status !== 'ok') throw new Error(data.message || 'Upstream error');
+
+        // Render meta
+        if (data.thumb) el('#thumb').src = data.thumb;
+        if (data.title) el('#title').textContent = data.title;
+        if (data.videoSrc) el('#player').src = data.videoSrc;
+
+        // Build buttons (all)
+        btns.innerHTML = '';
+        const makeRow = (label, url) => `
+          <div class="flex items-center gap-2 bg-black/30 border border-white/10 rounded-xl p-3">
+            <span class="flex-1 font-medium">${label}</span>
+            <a href="${url}" target="_blank" class="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold">Open</a>
+            <button data-url="${url}" class="copy px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">Copy</button>
+            <a href="${url}" download class="px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-sm font-semibold">Download</a>
+          </div>`;
+
+        // Prefer mapped quick links first
+        const rows = [];
+        if (data.map?.mp4) rows.push(makeRow('MP4 (No watermark)', data.map.mp4));
+        if (data.map?.mp4_hd) rows.push(makeRow('MP4 HD', data.map.mp4_hd));
+        if (data.map?.mp3) rows.push(makeRow('MP3 (Audio only)', data.map.mp3));
+
+        // Add any extra labeled links not already included
+        const added = new Set(rows.map(r => (r.match(/href=\"([^\"]+)/)||[])[1]));
+        (data.links || []).forEach(l => {
+          if (!added.has(l.url)) rows.push(makeRow(l.label, l.url));
+        });
+
+        btns.innerHTML = rows.join('') || '<div class="text-rose-300">No links found.</div>';
+
+        // Wire up copy buttons
+        btns.querySelectorAll('button.copy').forEach(b => {
+          b.addEventListener('click', async () => {
+            const u = b.getAttribute('data-url');
+            try { await navigator.clipboard.writeText(u); b.textContent = 'Copied!'; setTimeout(()=>b.textContent='Copy',1200); } catch {}
+          });
+        });
+      } catch (e) {
+        btns.innerHTML = `<div class="text-rose-300">Error: ${e.message || e}</div>`;
+      }
+    }
+
+    el('#go').addEventListener('click', fetchLinks);
+    el('#url').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ fetchLinks(); }});
+  </script>
+</body>
+  </html>
