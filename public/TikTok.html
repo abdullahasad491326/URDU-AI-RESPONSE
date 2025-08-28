@@ -13,14 +13,13 @@
     body{ font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
     .glass{ background: var(--glass); backdrop-filter: blur(12px); }
     .shine{ position: relative; overflow: hidden; }
-    /* Fix: pseudo-element should not block input */
     .shine:before{ 
       content:''; 
       position:absolute; 
       inset:-200% -50%; 
       background:radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 60%); 
       animation: spin 12s linear infinite; 
-      pointer-events: none; /* <-- THIS IS THE FIX */
+      pointer-events: none;
     }
     @keyframes spin{ to{ transform: rotate(360deg); } }
   </style>
@@ -83,36 +82,23 @@
       resWrap.classList.remove('hidden');
 
       try {
-        const resp = await fetch('/api/download', {
+        const resp = await fetch('/api/tiktok', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url })
         });
         const data = await resp.json();
-        if (data.status !== 'ok') throw new Error(data.message || 'Upstream error');
-
-        if (data.thumb) el('#thumb').src = data.thumb;
-        if (data.title) el('#title').textContent = data.title;
-        if (data.videoSrc) el('#player').src = data.videoSrc;
+        if (!data.success) throw new Error('Failed to fetch TikTok data');
 
         btns.innerHTML = '';
-        const makeRow = (label, url) => `
+        const rows = data.downloads.map(item => `
           <div class="flex items-center gap-2 bg-black/30 border border-white/10 rounded-xl p-3">
-            <span class="flex-1 font-medium">${label}</span>
-            <a href="${url}" target="_blank" class="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold">Open</a>
-            <button data-url="${url}" class="copy px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">Copy</button>
-            <a href="${url}" download class="px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-sm font-semibold">Download</a>
-          </div>`;
-
-        const rows = [];
-        if (data.map?.mp4) rows.push(makeRow('MP4 (No watermark)', data.map.mp4));
-        if (data.map?.mp4_hd) rows.push(makeRow('MP4 HD', data.map.mp4_hd));
-        if (data.map?.mp3) rows.push(makeRow('MP3 (Audio only)', data.map.mp3));
-
-        const added = new Set(rows.map(r => (r.match(/href=\"([^\"]+)/)||[])[1]));
-        (data.links || []).forEach(l => {
-          if (!added.has(l.url)) rows.push(makeRow(l.label, l.url));
-        });
+            <span class="flex-1 font-medium">${item.type}</span>
+            <a href="${item.link}" target="_blank" class="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-sm font-semibold">Open</a>
+            <button data-url="${item.link}" class="copy px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">Copy</button>
+            <a href="${item.link}" download class="px-3 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-sm font-semibold">Download</a>
+          </div>
+        `);
 
         btns.innerHTML = rows.join('') || '<div class="text-rose-300">No links found.</div>';
 
