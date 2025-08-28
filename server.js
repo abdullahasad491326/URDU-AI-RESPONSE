@@ -121,9 +121,9 @@ app.post("/api/tiktok", async (req, res) => {
     }
 });
 
-// ================== Serve Profile.html ==================
-app.get('/profile', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'Profile.html'));
+// ================== Serve TikTok.html ==================
+app.get('/tiktok', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'TikTok.html'));
 });
 
 // ================== Admin Config ==================
@@ -247,7 +247,7 @@ app.listen(PORT, () => {
     console.log(`✅ Server running at: http://localhost:${PORT}`);
     console.log(`➡️ ChatGPT UI: http://localhost:${PORT}/`);
     console.log(`➡️ DP Viewer UI: http://localhost:${PORT}/profile`);
-    console.log(`➡️ TikTok Downloader API: http://localhost:${PORT}/api/tiktok`);
+    console.log(`➡️ TikTok Downloader UI: http://localhost:${PORT}/tiktok`);
     console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
     console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
 });
