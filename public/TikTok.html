@@ -60,9 +60,9 @@
 
         <!-- Buttons (hidden until response) -->
         <div id="buttons" class="flex flex-col gap-3 hidden">
-          <a id="mp4" href="#" download="DEV-PAK-UPDATES.mp4" class="block w-full text-center px-4 py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-semibold">🎥 Download MP4 [1]</a>
-          <a id="mp4hd" href="#" download="DEV-PAK-UPDATES-HD.mp4" class="block w-full text-center px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-semibold">📺 Download MP4 HD</a>
-          <a id="mp3" href="#" download="DEV-PAK-UPDATES.mp3" class="block w-full text-center px-4 py-3 rounded-lg bg-pink-500 hover:bg-pink-600 font-semibold">🎶 Download MP3</a>
+          <a id="mp4" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-semibold">🎥 Download MP4 [1]</a>
+          <a id="mp4hd" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-semibold">📺 Download MP4 HD</a>
+          <a id="mp3" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-pink-500 hover:bg-pink-600 font-semibold">🎶 Download MP3</a>
         </div>
       </div>
     </section>
@@ -91,6 +91,20 @@
     const loader = el('#loading');
     const urlInput = el('#url');
 
+    // Force rename function
+    async function forceDownload(url, filename, anchorId) {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = el(anchorId);
+        a.href = blobUrl;
+        a.setAttribute("download", filename);
+      } catch (err) {
+        console.error("Download error:", err);
+      }
+    }
+
     async function fetchLinks() {
       const url = urlInput.value.trim();
       if (!url) { alert('Please paste a TikTok URL'); return; }
@@ -112,20 +126,15 @@
         loader.classList.add('hidden');
         buttons.classList.remove('hidden');
 
-        // Assign direct links + custom filenames
         const prefix = "DEV-PAK-UPDATES";
 
-        const mp4 = el('#mp4');
-        mp4.href = data.downloads.find(d=>d.type.includes('MP4 [1]'))?.link || '#';
-        mp4.setAttribute("download", `${prefix}.mp4`);
+        const mp4Link   = data.downloads.find(d=>d.type.includes('MP4 [1]'))?.link;
+        const mp4HdLink = data.downloads.find(d=>d.type.includes('MP4 HD'))?.link;
+        const mp3Link   = data.downloads.find(d=>d.type.includes('MP3'))?.link;
 
-        const mp4hd = el('#mp4hd');
-        mp4hd.href = data.downloads.find(d=>d.type.includes('MP4 HD'))?.link || '#';
-        mp4hd.setAttribute("download", `${prefix}-HD.mp4`);
-
-        const mp3 = el('#mp3');
-        mp3.href = data.downloads.find(d=>d.type.includes('MP3'))?.link || '#';
-        mp3.setAttribute("download", `${prefix}.mp3`);
+        if (mp4Link)   forceDownload(mp4Link,   `${prefix}.mp4`,   '#mp4');
+        if (mp4HdLink) forceDownload(mp4HdLink, `${prefix}-HD.mp4`, '#mp4hd');
+        if (mp3Link)   forceDownload(mp3Link,   `${prefix}.mp3`,   '#mp3');
 
       } catch (e) {
         loader.textContent = "❌ Error: " + (e.message || e);
