@@ -54,7 +54,12 @@
     <section id="result" class="mt-8 hidden">
       <div class="glass rounded-3xl p-4 border border-white/10">
         <h3 class="text-lg font-semibold mb-4">Download Options</h3>
-        <div id="buttons" class="flex flex-col gap-3">
+
+        <!-- Loader -->
+        <div id="loading" class="text-slate-300">⏳ Fetching download links...</div>
+
+        <!-- Buttons (hidden until response) -->
+        <div id="buttons" class="flex flex-col gap-3 hidden">
           <a id="mp4" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 font-semibold">🎥 Download MP4 [1]</a>
           <a id="mp4hd" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 font-semibold">📺 Download MP4 HD</a>
           <a id="mp3" href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-pink-500 hover:bg-pink-600 font-semibold">🎶 Download MP3</a>
@@ -82,6 +87,8 @@
   <script>
     const el = (sel) => document.querySelector(sel);
     const resWrap = el('#result');
+    const buttons = el('#buttons');
+    const loader = el('#loading');
     const urlInput = el('#url');
 
     async function fetchLinks() {
@@ -89,6 +96,8 @@
       if (!url) { alert('Please paste a TikTok URL'); return; }
 
       resWrap.classList.remove('hidden');
+      loader.classList.remove('hidden');
+      buttons.classList.add('hidden');
 
       try {
         const resp = await fetch('/api/tiktok', {
@@ -99,13 +108,17 @@
         const data = await resp.json();
         if (!data.success) throw new Error('Failed to fetch TikTok data');
 
+        // Hide loader, show buttons
+        loader.classList.add('hidden');
+        buttons.classList.remove('hidden');
+
         // Assign direct links
         el('#mp4').href   = data.downloads.find(d=>d.type.includes('MP4 [1]'))?.link || '#';
         el('#mp4hd').href = data.downloads.find(d=>d.type.includes('MP4 HD'))?.link || '#';
         el('#mp3').href   = data.downloads.find(d=>d.type.includes('MP3'))?.link || '#';
 
       } catch (e) {
-        alert("Error: " + (e.message || e));
+        loader.textContent = "❌ Error: " + (e.message || e);
       }
     }
 
