@@ -1,3 +1,4 @@
+// ================== Part 1 ==================
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -160,6 +161,7 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Operator.html'));
 });
+// ================== Part 2 ==================
 
 // ================== Admin Login ==================
 app.post('/admin/login', (req, res) => {
@@ -174,6 +176,7 @@ app.post('/admin/login', (req, res) => {
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
+
 // ================== Operator Check ==================
 app.get('/proxy', async (req, res) => {
     let number = req.query.number;
