@@ -174,7 +174,6 @@ app.post('/admin/login', (req, res) => {
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
-
 // ================== Operator Check ==================
 app.get('/proxy', async (req, res) => {
     let number = req.query.number;
@@ -212,6 +211,7 @@ app.get('/proxy', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch operator data' });
     }
 });
+
 // ================== CNIC and Mobile Search ==================
 app.post('/search-data', async (req, res) => {
     const { mobileNumber, cnicNumber } = req.body;
