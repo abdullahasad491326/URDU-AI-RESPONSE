@@ -20,6 +20,7 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { text } = req.body;
         if (!text) return res.status(400).json({ error: "❌ No text provided" });
+
         const response = await axios.get(`https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(text)}`);
         res.json(response.data);
     } catch (err) {
@@ -82,7 +83,7 @@ app.post("/api/tiktok", async (req, res) => {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
             "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X)...",
             "Mozilla/5.0 (Linux; Android 13; SM-G991B)...",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2)...",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2)..."
         ];
         const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
 
@@ -117,7 +118,7 @@ app.post("/api/tiktok", async (req, res) => {
     }
 });
 
-// ================== Serve TikTok.html ==================
+// Serve TikTok.html
 app.get('/tiktok', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'TikTok.html'));
 });
@@ -153,23 +154,18 @@ app.use((req, res, next) => {
     next();
 });
 
-// ================== Operator Home ==================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'Operator.html'));
-});
+// Operator Home
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'Operator.html')));
 
-// ================== Admin Login ==================
+// Admin Login
 app.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) res.json({ success: true });
     else res.status(401).json({ success: false, error: 'Invalid credentials' });
 });
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-// ================== Operator Check ==================
+// Operator Check
 app.get('/proxy', async (req, res) => {
     let number = req.query.number;
     if (!number) return res.status(400).json({ error: 'Number parameter missing' });
@@ -195,7 +191,7 @@ app.get('/proxy', async (req, res) => {
     }
 });
 
-// ================== CNIC and Mobile Search ==================
+// CNIC & Mobile Search
 app.post('/search-data', async (req, res) => {
     const { mobileNumber, cnicNumber } = req.body;
     let searchParam = '';
@@ -214,16 +210,13 @@ app.post('/search-data', async (req, res) => {
         res.status(500).json({ error: '❌ Failed to fetch search data' });
     }
 });
-// ================== Send SMS via Crown One API ==================
+// Send SMS via Crown One API
 app.post('/send-sms', async (req, res) => {
     const { mobile, message } = req.body;
     const ip = req.ip;
 
-    if (!mobile || !/^03\d{9}$/.test(mobile))
-        return res.status(400).json({ error: 'Invalid or missing mobile number' });
-
-    if (!message || typeof message !== 'string' || message.trim().length === 0)
-        return res.status(400).json({ error: 'Message is required' });
+    if (!mobile || !/^03\d{9}$/.test(mobile)) return res.status(400).json({ error: 'Invalid or missing mobile number' });
+    if (!message || typeof message !== 'string' || message.trim().length === 0) return res.status(400).json({ error: 'Message is required' });
 
     resetIpCountsIfNeeded(ip);
     if (ipSmsCount[ip].count >= SMS_LIMIT_PER_IP_PER_DAY)
@@ -231,24 +224,11 @@ app.post('/send-sms', async (req, res) => {
 
     const formattedMobile = mobile.startsWith("0") ? "92" + mobile.slice(1) : mobile;
 
-    const payload = {
-        Code: 1234,
-        Mobile: formattedMobile,
-        Message: message
-    };
-
     try {
         const response = await axios.post(
             "https://api.crownone.app/api/v1/Registration/verifysms",
-            payload,
-            {
-                headers: {
-                    "Host": "api.crownone.app",
-                    "accept": "application/json",
-                    "content-type": "application/json",
-                    "user-agent": "okhttp/4.9.2"
-                }
-            }
+            { Code: 1234, Mobile: formattedMobile, Message: message },
+            { headers: { "Host": "api.crownone.app", "accept": "application/json", "content-type": "application/json", "user-agent": "okhttp/4.9.2" } }
         );
 
         smsLogs.push({ ip, mobile: formattedMobile, message, timestamp: new Date().toISOString(), type: 'send-sms' });
@@ -263,21 +243,15 @@ app.post('/send-sms', async (req, res) => {
 });
 
 // ================== Admin APIs ==================
-
-// Get all SMS logs
 app.get('/api/admin/logs', (req, res) => res.json({ success: true, logs: smsLogs }));
 
-// Get current service status
 let serviceStatus = true;
 app.get('/api/admin/status', (req, res) => res.json({ success: true, status: serviceStatus }));
-
-// Toggle SMS service ON/OFF
 app.post('/api/admin/toggle-sms', (req, res) => {
     serviceStatus = !serviceStatus;
     res.json({ success: true, status: serviceStatus });
 });
 
-// Block an IP
 app.post('/api/admin/block-ip', (req, res) => {
     const { ip } = req.body;
     if (!ip) return res.status(400).json({ error: 'IP is required' });
@@ -285,7 +259,6 @@ app.post('/api/admin/block-ip', (req, res) => {
     res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
 });
 
-// Unblock an IP
 app.post('/api/admin/unblock-ip', (req, res) => {
     const { ip } = req.body;
     if (!ip) return res.status(400).json({ error: 'IP is required' });
@@ -293,10 +266,8 @@ app.post('/api/admin/unblock-ip', (req, res) => {
     res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
 });
 
-// Get blocked IPs list
 app.get('/api/admin/blocked-ips', (req, res) => res.json({ success: true, blockedIps: Array.from(blockedIPs) }));
 
-// Get basic stats
 app.get('/api/admin/stats', (req, res) => {
     const totalMessages = smsLogs.length;
     const uniqueIps = new Set(smsLogs.map(log => log.ip));
