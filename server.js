@@ -2,7 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
-const fetch = require('node-fetch');
 const { JSDOM } = require('jsdom');
 
 const app = express();
@@ -269,4 +268,42 @@ app.get('/api/admin/logs', (req, res) => res.json({ success: true, logs: smsLogs
 let serviceStatus = true;
 app.get('/api/admin/status', (req, res) => res.json({ success: true, status: serviceStatus }));
 app.post('/api/admin/toggle-sms', (req, res) => { serviceStatus = !serviceStatus; res.json({ success: true, status: serviceStatus }); });
-app.post('/api/admin/block-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP
+
+// Block an IP
+app.post('/api/admin/block-ip', (req, res) => {
+    const { ip } = req.body;
+    if (!ip) return res.status(400).json({ error: 'IP is required' });
+    blockedIPs.add(ip);
+    res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
+});
+
+// Unblock an IP
+app.post('/api/admin/unblock-ip', (req, res) => {
+    const { ip } = req.body;
+    if (!ip) return res.status(400).json({ error: 'IP is required' });
+    blockedIPs.delete(ip);
+    res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
+});
+
+// Get blocked IPs
+app.get('/api/admin/blocked-ips', (req, res) => {
+    res.json({ success: true, blockedIps: Array.from(blockedIPs) });
+});
+
+// Admin stats
+app.get('/api/admin/stats', (req, res) => {
+    const totalMessages = smsLogs.length;
+    const uniqueIps = new Set(smsLogs.map(log => log.ip));
+    const totalVisitors = uniqueIps.size;
+    res.json({ success: true, totalMessages, totalVisitors });
+});
+
+// ================== Start Server ==================
+app.listen(PORT, () => {
+    console.log(`✅ Server running at: http://localhost:${PORT}`);
+    console.log(`➡️ ChatGPT UI: http://localhost:${PORT}/`);
+    console.log(`➡️ DP Viewer UI: http://localhost:${PORT}/profile`);
+    console.log(`➡️ TikTok Downloader UI: http://localhost:${PORT}/tiktok`);
+    console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
+    console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
+});
