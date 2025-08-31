@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    /* --- same design --- */
+    /* --- same old design --- */
     :root { --primary:#00c4ff; --secondary:#8e44ad; --background:#0a0015;
       --card-bg:rgba(2,0,5,0.8); --text-light:#f0f8ff; --text-muted:#64b5f6;
       --border-color:rgba(142,68,173,0.4); --error:#FF5722; --success:#2ECC71;}
@@ -42,6 +42,11 @@
     .theme-button[data-theme="default"]{background-color:#00c4ff}
     .theme-button[data-theme="emerald"]{background-color:#00e8c7}
     .theme-button[data-theme="crimson"]{background-color:#ff5722}
+
+    /* --- New box-grid for results --- */
+    .box-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+    .box-card{padding:12px;background:rgba(0,196,255,0.2);border-radius:8px;font-weight:600;text-align:center;overflow-wrap:break-word}
+    .number-card{background:rgba(142,68,173,0.2)}
   </style>
 </head>
 <body>
@@ -66,25 +71,11 @@
     <i class="fab fa-whatsapp icon"></i> Join Channel
   </a>
   <script>
-    // Theme switcher
-    document.querySelectorAll('.theme-button').forEach(btn=>{
-      btn.addEventListener('click',()=> {
-        document.body.dataset.theme = btn.dataset.theme;
-        document.querySelectorAll('.theme-button').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-
-    // Clear input button
-    const clearBtn = document.querySelector('.clear-input');
-    const inputField = document.getElementById('searchInput');
-    inputField.addEventListener('input',()=>{ clearBtn.style.display = inputField.value?'block':'none'; });
-    clearBtn.addEventListener('click',()=>{ inputField.value=''; clearBtn.style.display='none'; });
-
     async function searchData() {
+      const inputField = document.getElementById('searchInput');
       const simResultDiv = document.getElementById('simResult');
       const simErrorDiv = document.getElementById('simError');
-      let input = inputField.value.trim().replace(/-/g, ''); 
+      let input = inputField.value.trim().replace(/-/g, '');
 
       simResultDiv.classList.remove('error','initial');
       simResultDiv.innerHTML = `<p>Executing data trace... <span class="spinner"></span></p>`;
@@ -106,7 +97,6 @@
           headers: { 'Content-Type':'application/json' },
           body: JSON.stringify(isMobile ? { mobileNumber: input } : { cnicNumber: input })
         });
-
         const data = await response.json();
 
         if (!response.ok) {
@@ -116,7 +106,29 @@
           return;
         }
 
-        simResultDiv.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+        if (!data.name && !data.cnic && !data.address) {
+          simErrorDiv.style.display = 'block';
+          simErrorDiv.innerHTML = '❌ Trace incomplete.';
+          simResultDiv.innerHTML = '';
+          return;
+        }
+
+        // Show result in box-grid style
+        let html = `<div class="box-grid">
+          <div class="box-card"><strong>NAME</strong><br>${data.name}</div>
+          <div class="box-card"><strong>CNIC</strong><br>${data.cnic}</div>
+          <div class="box-card"><strong>ADDRESS</strong><br>${data.address}</div>
+        `;
+
+        if (data.numbers && data.numbers.length > 0) {
+          data.numbers.forEach(num => {
+            html += `<div class="box-card number-card"><strong>NUMBER</strong><br>${num}</div>`;
+          });
+        }
+
+        html += `</div><br><span style="color: var(--success); font-weight:600;">✅ DATA ACQUIRED</span>`;
+        simResultDiv.innerHTML = html;
+
       } catch (err) {
         simErrorDiv.style.display = 'block';
         simErrorDiv.innerHTML = '❌ Connection error.';
