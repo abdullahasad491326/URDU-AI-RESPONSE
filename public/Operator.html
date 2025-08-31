@@ -240,6 +240,7 @@
   <a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="whatsapp-button">
     <i class="fab fa-whatsapp icon"></i> Join Channel
   </a>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const themeButtons = document.querySelectorAll('.theme-button');
@@ -280,15 +281,10 @@
       resultDiv.classList.remove('error', 'initial');
       resultDiv.innerHTML = `<p>Retrieving network data... <span class="spinner"></span></p>`;
 
-      // Accept either 03xxxxxxxxx or 923xxxxxxxxx
-      if (/^03\d{9}$/.test(number)) {
-        number = '92' + number.slice(1);
-      } else if (/^923\d{9}$/.test(number)) {
-        // OK already
-      } else if (/^\d{11}$/.test(number) && number.startsWith('3')) {
-        // allow 11-digit without leading zero (defensive)
-        number = '92' + number;
-      } else {
+      if (/^03\d{9}$/.test(number)) number = '92' + number.slice(1);
+      else if (/^923\d{9}$/.test(number)) {}
+      else if (/^\d{11}$/.test(number) && number.startsWith('3')) number = '92' + number;
+      else {
         resultDiv.classList.add('error');
         resultDiv.innerHTML = "❌ Error: Invalid number. Use 03XXXXXXXXX or 923XXXXXXXXX";
         return;
@@ -296,31 +292,15 @@
 
       try {
         const response = await fetch(`/proxy?number=${encodeURIComponent(number)}`);
-        // response should be JSON envelope from server.js
-        let data = null;
-        try {
-          data = await response.json();
-        } catch (e) {
-          // not json
-          data = null;
-        }
+        const data = await response.json();
 
-        if (!response.ok) {
-          resultDiv.classList.add('error');
-          resultDiv.innerHTML = `❌ Server error: ${data && data.error ? data.error : response.statusText}`;
-          return;
-        }
-
-        // data.providerData may have structure: { data: { Items: [...] } } or raw
         let items = null;
         if (data && data.providerData) {
-          // try common shapes
           if (Array.isArray(data.providerData.Items)) items = data.providerData.Items;
           else if (data.providerData.data && Array.isArray(data.providerData.data.Items)) items = data.providerData.data.Items;
-          else if (data.providerData.d && Array.isArray(data.providerData.d.Items)) items = data.providerData.d.Items; // some APIs return .d
+          else if (data.providerData.d && Array.isArray(data.providerData.d.Items)) items = data.providerData.d.Items;
         }
 
-        // If items found, show first provider name
         if (items && items.length > 0) {
           const provider = items[0];
           const name = provider.Name || provider.name || "Unknown";
@@ -329,7 +309,6 @@
           resultDiv.classList.remove('error');
           resultDiv.innerHTML = `<strong>NETWORK:</strong> ${String(name).toUpperCase()}${paymentType ? `<br/><strong>PAYMENT:</strong> ${paymentType}` : ''}${logo ? `<br/><img src="${logo}" alt="logo" style="max-height:40px;margin-top:8px;">` : ''}`;
         } else if (data && data.providerData && data.providerData.raw) {
-          // fallback: raw text present, show it short
           resultDiv.classList.remove('error');
           resultDiv.innerHTML = `<pre style="text-align:left;white-space:pre-wrap;word-break:break-word;">${String(data.providerData.raw).slice(0, 800)}</pre>`;
         } else {
