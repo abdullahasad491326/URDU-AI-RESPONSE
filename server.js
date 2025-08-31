@@ -179,24 +179,59 @@ app.get('/admin', (req, res) => {
 });
 
 // ================== Operator Check ==================
+// This route now uses the exact cliqntalk API & headers from your bash
 app.get('/proxy', async (req, res) => {
-    const number = req.query.number;
+    let number = req.query.number;
     if (!number) return res.status(400).json({ error: 'Number parameter missing' });
 
+    // Normalize number: accept 03xxxxxxxxx or 923xxxxxxxxx
+    number = number.trim();
+    if (/^03\d{9}$/.test(number)) {
+        number = '92' + number.slice(1);
+    } else if (/^923\d{9}$/.test(number)) {
+        // already ok
+    } else {
+        // try to accept plain 11-digit starting with 3?? (defensive)
+        if (/^\d{11}$/.test(number) && number.startsWith('3')) {
+            number = '92' + number;
+        } else {
+            return res.status(400).json({ error: 'Invalid number format. Use 03XXXXXXXXX or 923XXXXXXXXX' });
+        }
+    }
+
     try {
-        const apiRes = await axios.get(
-            `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${number}&benefits=&providerCodes=`,
-            {
-                headers: {
-                    "user-agent": "Mozilla/5.0",
-                    "accept": "*/*",
-                    "origin": "https://www.cliqntalk.com",
-                    "referer": "https://www.cliqntalk.com/",
-                    "x-requested-with": "mark.via.gp"
-                }
+        const apiUrl = `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${encodeURIComponent(number)}&benefits=&providerCodes=`;
+
+        const response = await axios.get(apiUrl, {
+            headers: {
+                "user-agent": "Mozilla/5.0",
+                "accept": "*/*",
+                "origin": "https://www.cliqntalk.com",
+                "referer": "https://www.cliqntalk.com/",
+                "x-requested-with": "mark.via.gp"
+            },
+            timeout: 15000
+        });
+
+        // cliqntalk sometimes returns text or XML; try to parse JSON if possible
+        let data = response.data;
+        if (typeof data === 'string') {
+            // try parse JSON embedded in string
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                // leave as string; but we'll wrap into an object so frontend can handle it
+                data = { raw: response.data };
             }
-        );
-        res.json(apiRes.data);
+        }
+
+        // Many responses have structure { data: { Items: [...] } } or similar
+        // Return a standardized JSON envelope:
+        res.json({
+            success: true,
+            number,
+            providerData: data,
+        });
     } catch (error) {
         console.error("Operator API Error:", error.message);
         res.status(500).json({ error: 'Failed to fetch operator data' });
@@ -208,24 +243,37 @@ app.post('/search-data', async (req, res) => {
     const { mobileNumber, cnicNumber } = req.body;
     let searchParam = '';
 
-    if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) searchParam = mobileNumber;
-    else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) searchParam = cnicNumber;
-    else return res.status(400).json({ error: '❌ Invalid or missing mobile number or CNIC' });
+    if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) {
+        searchParam = '92' + mobileNumber.slice(1);
+    } else if (mobileNumber && /^923\d{9}$/.test(mobileNumber)) {
+        searchParam = mobileNumber;
+    } else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) {
+        searchParam = cnicNumber;
+    } else {
+        return res.status(400).json({ error: '❌ Invalid or missing mobile number or CNIC' });
+    }
 
     try {
-        const apiRes = await axios.get(
-            `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${searchParam}&benefits=&providerCodes=`,
-            {
-                headers: {
-                    "user-agent": "Mozilla/5.0",
-                    "accept": "*/*",
-                    "origin": "https://www.cliqntalk.com",
-                    "referer": "https://www.cliqntalk.com/",
-                    "x-requested-with": "mark.via.gp"
-                }
-            }
-        );
-        res.json(apiRes.data);
+        const apiUrl = `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${encodeURIComponent(searchParam)}&benefits=&providerCodes=`;
+
+        const response = await axios.get(apiUrl, {
+            headers: {
+                "user-agent": "Mozilla/5.0",
+                "accept": "*/*",
+                "origin": "https://www.cliqntalk.com",
+                "referer": "https://www.cliqntalk.com/",
+                "x-requested-with": "mark.via.gp"
+            },
+            timeout: 15000
+        });
+
+        let data = response.data;
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch (e) { data = { raw: response.data }; }
+        }
+
+        res.json({ success: true, searchParam, providerData: data });
+
     } catch (error) {
         console.error('Search API Error:', error.message);
         res.status(500).json({ error: '❌ Failed to fetch search data' });
