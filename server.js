@@ -36,7 +36,6 @@ app.get('/api/dp', async (req, res) => {
         if (!phone) return res.status(400).json({ error: "❌ Phone number required" });
 
         const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${encodeURIComponent(phone)}`;
-
         const userAgents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
@@ -179,29 +178,19 @@ app.get('/admin', (req, res) => {
 });
 
 // ================== Operator Check ==================
-// This route now uses the exact cliqntalk API & headers from your bash
 app.get('/proxy', async (req, res) => {
     let number = req.query.number;
     if (!number) return res.status(400).json({ error: 'Number parameter missing' });
 
-    // Normalize number: accept 03xxxxxxxxx or 923xxxxxxxxx
     number = number.trim();
     if (/^03\d{9}$/.test(number)) {
         number = '92' + number.slice(1);
     } else if (/^923\d{9}$/.test(number)) {
-        // already ok
-    } else {
-        // try to accept plain 11-digit starting with 3?? (defensive)
-        if (/^\d{11}$/.test(number) && number.startsWith('3')) {
-            number = '92' + number;
-        } else {
-            return res.status(400).json({ error: 'Invalid number format. Use 03XXXXXXXXX or 923XXXXXXXXX' });
-        }
-    }
+        // ok
+    } else return res.status(400).json({ error: 'Invalid number format. Use 03XXXXXXXXX or 923XXXXXXXXX' });
 
     try {
-        const apiUrl = `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${encodeURIComponent(number)}&benefits=&providerCodes=`;
-
+        const apiUrl = `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${encodeURIComponent(number)}`;
         const response = await axios.get(apiUrl, {
             headers: {
                 "user-agent": "Mozilla/5.0",
@@ -213,32 +202,14 @@ app.get('/proxy', async (req, res) => {
             timeout: 15000
         });
 
-        // cliqntalk sometimes returns text or XML; try to parse JSON if possible
-        let data = response.data;
-        if (typeof data === 'string') {
-            // try parse JSON embedded in string
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                // leave as string; but we'll wrap into an object so frontend can handle it
-                data = { raw: response.data };
-            }
-        }
-
-        // Many responses have structure { data: { Items: [...] } } or similar
-        // Return a standardized JSON envelope:
-        res.json({
-            success: true,
-            number,
-            providerData: data,
-        });
+        res.json({ success: true, number, providerData: response.data });
     } catch (error) {
         console.error("Operator API Error:", error.message);
         res.status(500).json({ error: 'Failed to fetch operator data' });
     }
 });
 
-// ================== CNIC and Mobile Search ==================
+// ================== SIM Database Search ==================
 app.post('/search-data', async (req, res) => {
     const { mobileNumber, cnicNumber } = req.body;
     let searchParam = '';
@@ -254,29 +225,21 @@ app.post('/search-data', async (req, res) => {
     }
 
     try {
-        const apiUrl = `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${encodeURIComponent(searchParam)}&benefits=&providerCodes=`;
-
+        const apiUrl = `https://allnetworksimdata.com/?number=${encodeURIComponent(searchParam)}`;
         const response = await axios.get(apiUrl, {
             headers: {
                 "user-agent": "Mozilla/5.0",
-                "accept": "*/*",
-                "origin": "https://www.cliqntalk.com",
-                "referer": "https://www.cliqntalk.com/",
-                "x-requested-with": "mark.via.gp"
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "referer": "https://allnetworksimdata.com/",
+                "origin": "https://allnetworksimdata.com"
             },
             timeout: 15000
         });
 
-        let data = response.data;
-        if (typeof data === 'string') {
-            try { data = JSON.parse(data); } catch (e) { data = { raw: response.data }; }
-        }
-
-        res.json({ success: true, searchParam, providerData: data });
-
+        res.send(response.data);
     } catch (error) {
-        console.error('Search API Error:', error.message);
-        res.status(500).json({ error: '❌ Failed to fetch search data' });
+        console.error('SIM DB API Error:', error.message);
+        res.status(500).json({ error: '❌ Failed to fetch SIM database data' });
     }
 });
 
@@ -306,17 +269,4 @@ app.get('/api/admin/logs', (req, res) => res.json({ success: true, logs: smsLogs
 let serviceStatus = true;
 app.get('/api/admin/status', (req, res) => res.json({ success: true, status: serviceStatus }));
 app.post('/api/admin/toggle-sms', (req, res) => { serviceStatus = !serviceStatus; res.json({ success: true, status: serviceStatus }); });
-app.post('/api/admin/block-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP is required' }); blockedIPs.add(ip); res.json({ success: true, blockedIPs: Array.from(blockedIPs) }); });
-app.post('/api/admin/unblock-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP is required' }); blockedIPs.delete(ip); res.json({ success: true, blockedIPs: Array.from(blockedIPs) }); });
-app.get('/api/admin/blocked-ips', (req, res) => res.json({ success: true, blockedIps: Array.from(blockedIPs) }));
-app.get('/api/admin/stats', (req, res) => { const totalMessages = smsLogs.length; const uniqueIps = new Set(smsLogs.map(log => log.ip)); const totalVisitors = uniqueIps.size; res.json({ success: true, totalMessages, totalVisitors }); });
-
-// ================== Start Server ==================
-app.listen(PORT, () => {
-    console.log(`✅ Server running at: http://localhost:${PORT}`);
-    console.log(`➡️ ChatGPT UI: http://localhost:${PORT}/`);
-    console.log(`➡️ DP Viewer UI: http://localhost:${PORT}/profile`);
-    console.log(`➡️ TikTok Downloader UI: http://localhost:${PORT}/tiktok`);
-    console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
-    console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
-});
+app.post('/api/admin/block-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP
