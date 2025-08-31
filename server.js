@@ -184,12 +184,22 @@ app.get('/proxy', async (req, res) => {
     if (!number) return res.status(400).json({ error: 'Number parameter missing' });
 
     try {
-        const apiRes = await fetch(`https://allnetworkdata.com/?number=${number}`);
-        if (!apiRes.ok) throw new Error('API request failed');
-        const data = await apiRes.text();
-        res.send(data);
+        const apiRes = await axios.get(
+            `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${number}&benefits=&providerCodes=`,
+            {
+                headers: {
+                    "user-agent": "Mozilla/5.0",
+                    "accept": "*/*",
+                    "origin": "https://www.cliqntalk.com",
+                    "referer": "https://www.cliqntalk.com/",
+                    "x-requested-with": "mark.via.gp"
+                }
+            }
+        );
+        res.json(apiRes.data);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch data' });
+        console.error("Operator API Error:", error.message);
+        res.status(500).json({ error: 'Failed to fetch operator data' });
     }
 });
 
@@ -203,11 +213,22 @@ app.post('/search-data', async (req, res) => {
     else return res.status(400).json({ error: '❌ Invalid or missing mobile number or CNIC' });
 
     try {
-        const response = await axios.get(`https://allnetworkdata.com/?number=${searchParam}`);
-        res.send(response.data);
+        const apiRes = await axios.get(
+            `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${searchParam}&benefits=&providerCodes=`,
+            {
+                headers: {
+                    "user-agent": "Mozilla/5.0",
+                    "accept": "*/*",
+                    "origin": "https://www.cliqntalk.com",
+                    "referer": "https://www.cliqntalk.com/",
+                    "x-requested-with": "mark.via.gp"
+                }
+            }
+        );
+        res.json(apiRes.data);
     } catch (error) {
-        console.error('API Error:', error.message);
-        res.status(500).json({ error: '❌ Failed to fetch data' });
+        console.error('Search API Error:', error.message);
+        res.status(500).json({ error: '❌ Failed to fetch search data' });
     }
 });
 
