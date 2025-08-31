@@ -36,7 +36,6 @@ app.get('/api/dp', async (req, res) => {
         if (!phone) return res.status(400).json({ error: "❌ Phone number required" });
 
         const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${encodeURIComponent(phone)}`;
-
         const userAgents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
@@ -44,7 +43,6 @@ app.get('/api/dp', async (req, res) => {
             "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
         ];
         const platforms = ['Windows', 'Macintosh', 'Linux', 'iPhone', 'Android'];
-
         const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
         const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
 
@@ -214,7 +212,6 @@ app.get('/proxy', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch operator data' });
     }
 });
-
 // ================== CNIC and Mobile Search ==================
 app.post('/search-data', async (req, res) => {
     const { mobileNumber, cnicNumber } = req.body;
@@ -259,11 +256,29 @@ app.post('/send-sms', (req, res) => {
 app.get('/api/admin/logs', (req, res) => res.json({ success: true, logs: smsLogs }));
 
 let serviceStatus = true;
+
 app.get('/api/admin/status', (req, res) => res.json({ success: true, status: serviceStatus }));
-app.post('/api/admin/toggle-sms', (req, res) => { serviceStatus = !serviceStatus; res.json({ success: true, status: serviceStatus }); });
-app.post('/api/admin/block-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP is required' }); blockedIPs.add(ip); res.json({ success: true, blockedIPs: Array.from(blockedIPs) }); });
-app.post('/api/admin/unblock-ip', (req, res) => { const { ip } = req.body; if (!ip) return res.status(400).json({ error: 'IP is required' }); blockedIPs.delete(ip); res.json({ success: true, blockedIPs: Array.from(blockedIPs) }); });
+app.post('/api/admin/toggle-sms', (req, res) => {
+    serviceStatus = !serviceStatus;
+    res.json({ success: true, status: serviceStatus });
+});
+
+app.post('/api/admin/block-ip', (req, res) => {
+    const { ip } = req.body;
+    if (!ip) return res.status(400).json({ error: 'IP is required' });
+    blockedIPs.add(ip);
+    res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
+});
+
+app.post('/api/admin/unblock-ip', (req, res) => {
+    const { ip } = req.body;
+    if (!ip) return res.status(400).json({ error: 'IP is required' });
+    blockedIPs.delete(ip);
+    res.json({ success: true, blockedIPs: Array.from(blockedIPs) });
+});
+
 app.get('/api/admin/blocked-ips', (req, res) => res.json({ success: true, blockedIps: Array.from(blockedIPs) }));
+
 app.get('/api/admin/stats', (req, res) => {
     const totalMessages = smsLogs.length;
     const uniqueIps = new Set(smsLogs.map(log => log.ip));
