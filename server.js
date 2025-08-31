@@ -20,7 +20,6 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { text } = req.body;
         if (!text) return res.status(400).json({ error: "❌ No text provided" });
-
         const response = await axios.get(`https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(text)}`);
         res.json(response.data);
     } catch (err) {
@@ -119,9 +118,7 @@ app.post("/api/tiktok", async (req, res) => {
 });
 
 // Serve TikTok.html
-app.get('/tiktok', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'TikTok.html'));
-});
+app.get('/tiktok', (req, res) => res.sendFile(path.join(__dirname, 'public', 'TikTok.html')));
 // ================== Admin Config ==================
 const ADMIN_USERNAME = 'PAKCYBER';
 const ADMIN_PASSWORD = '82214760';
@@ -137,11 +134,9 @@ function resetIpCountsIfNeeded(ip) {
     if (!ipSmsCount[ip]) ipSmsCount[ip] = { count: 0, lastReset: now };
     else {
         const lastReset = ipSmsCount[ip].lastReset;
-        if (
-            now.getFullYear() !== lastReset.getFullYear() ||
+        if (now.getFullYear() !== lastReset.getFullYear() ||
             now.getMonth() !== lastReset.getMonth() ||
-            now.getDate() !== lastReset.getDate()
-        ) {
+            now.getDate() !== lastReset.getDate()) {
             ipSmsCount[ip].count = 0;
             ipSmsCount[ip].lastReset = now;
         }
@@ -165,7 +160,7 @@ app.post('/admin/login', (req, res) => {
 });
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// Operator Check
+// ================== Operator Check (Fixed) ==================
 app.get('/proxy', async (req, res) => {
     let number = req.query.number;
     if (!number) return res.status(400).json({ error: 'Number parameter missing' });
@@ -180,11 +175,25 @@ app.get('/proxy', async (req, res) => {
     try {
         const apiUrl = `https://cliqntalk.daraldhabikitchen.com/crm/webapi.asmx/GetProviders?countryIsos=pk&regionCodes=pk&accountNumber=${encodeURIComponent(number)}&benefits=&providerCodes=`;
         const response = await axios.get(apiUrl, { headers: { "user-agent": "Mozilla/5.0" }, timeout: 15000 });
+
         let data = response.data;
         if (typeof data === 'string') {
             try { data = JSON.parse(data); } catch { data = { raw: response.data }; }
         }
-        res.json({ success: true, number, providerData: data });
+
+        // Parse operator(s) from API response
+        let operators = [];
+        if (data?.data?.Items?.length > 0) {
+            operators = data.data.Items.map(item => `${item.Name} (${item.ProviderCode}) - ${item.PaymentTypes.join(',')}`);
+        }
+
+        res.json({
+            success: true,
+            number,
+            raw: data,
+            operators: operators.length > 0 ? operators : ["Operator not found"]
+        });
+
     } catch (error) {
         console.error("Operator API Error:", error.message);
         res.status(500).json({ error: 'Failed to fetch operator data' });
