@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    /* ✅ Reuse same CSS as master file */
     :root { --primary:#00c4ff; --secondary:#8e44ad; --background:#0a0015; --card-bg:rgba(2,0,5,0.8); --text-light:#f0f8ff; --text-muted:#64b5f6; --border-color:rgba(142,68,173,0.4); --error:#FF5722; --success:#2ECC71;}
     body[data-theme="emerald"] {--primary:#00e8c7; --secondary:#00a896; --background:#001515; --card-bg:rgba(0,5,5,0.8); --border-color:rgba(0,168,150,0.4);}
     body[data-theme="crimson"] {--primary:#ff5722; --secondary:#c0392b; --background:#150500; --card-bg:rgba(5,2,0,0.8); --border-color:rgba(192,57,43,0.4);}
@@ -40,7 +39,7 @@
         <input type="text" id="smsMobile" placeholder="Enter recipient's 11-digit number" maxlength="11" />
       </div>
       <div class="input-wrapper">
-        <textarea id="smsMessage" placeholder="Enter your message text (with PIN)" required></textarea>
+        <textarea id="smsMessage" placeholder="Enter your message text" required></textarea>
       </div>
       <button onclick="sendCrownOneSms()">Send SMS</button>
       <div id="smsStatus" class="result initial">Send messages securely...</div>
@@ -54,13 +53,39 @@
       const message = document.getElementById('smsMessage').value.trim();
       const statusDiv = document.getElementById('smsStatus');
       statusDiv.innerHTML = `<p>Sending SMS... <span class="spinner"></span></p>`;
-      if (!/^03\d{9}$/.test(mobile)) { statusDiv.className='result error'; statusDiv.innerHTML="❌ Invalid number"; return;}
-      if (!message){statusDiv.className='result error'; statusDiv.innerHTML="❌ Empty message";return;}
+      statusDiv.className = 'result initial';
+
+      if (!/^03\d{9}$/.test(mobile)) {
+        statusDiv.className = 'result error';
+        statusDiv.innerHTML = "❌ Invalid number";
+        return;
+      }
+      if (!message){
+        statusDiv.className = 'result error';
+        statusDiv.innerHTML = "❌ Empty message";
+        return;
+      }
+
       try {
-        const res = await fetch('/send-sms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mobile,message})});
-        const result=await res.json();
-        if(res.ok && result.success){statusDiv.innerHTML="✅ Message sent!";} else {statusDiv.className='result error';statusDiv.innerHTML="❌ Failed";}
-      } catch(e){statusDiv.className='result error';statusDiv.innerHTML="❌ Connection error";}
+        const res = await fetch('/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile, message })
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          statusDiv.className = 'result';
+          statusDiv.innerHTML = `✅ Message sent to ${mobile}`;
+        } else {
+          statusDiv.className = 'result error';
+          statusDiv.innerHTML = `❌ Failed: ${result.error || 'Unknown error'}`;
+        }
+      } catch (e) {
+        statusDiv.className = 'result error';
+        statusDiv.innerHTML = "❌ Connection error";
+      }
     }
   </script>
 </body>
