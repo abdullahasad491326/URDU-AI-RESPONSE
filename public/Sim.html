@@ -66,8 +66,22 @@
     <i class="fab fa-whatsapp icon"></i> Join Channel
   </a>
   <script>
+    // Theme switcher
+    document.querySelectorAll('.theme-button').forEach(btn=>{
+      btn.addEventListener('click',()=> {
+        document.body.dataset.theme = btn.dataset.theme;
+        document.querySelectorAll('.theme-button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Clear input button
+    const clearBtn = document.querySelector('.clear-input');
+    const inputField = document.getElementById('searchInput');
+    inputField.addEventListener('input',()=>{ clearBtn.style.display = inputField.value?'block':'none'; });
+    clearBtn.addEventListener('click',()=>{ inputField.value=''; clearBtn.style.display='none'; });
+
     async function searchData() {
-      const inputField = document.getElementById('searchInput');
       const simResultDiv = document.getElementById('simResult');
       const simErrorDiv = document.getElementById('simError');
       let input = inputField.value.trim().replace(/-/g, ''); 
@@ -102,18 +116,7 @@
           return;
         }
 
-        if (data?.name && data?.cnic && data?.address) {
-          simResultDiv.innerHTML = `
-            <strong>NAME:</strong> ${data.name}<br/>
-            <strong>CNIC:</strong> ${data.cnic}<br/>
-            <strong>ADDRESS:</strong> ${data.address}<br/>
-            <strong>STATUS:</strong> <span style='color: var(--success);'>ACQUIRED</span>
-          `;
-        } else {
-          simErrorDiv.style.display = 'block';
-          simErrorDiv.innerHTML = '❌ Trace incomplete.';
-          simResultDiv.innerHTML = '';
-        }
+        simResultDiv.innerHTML = `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
       } catch (err) {
         simErrorDiv.style.display = 'block';
         simErrorDiv.innerHTML = '❌ Connection error.';
