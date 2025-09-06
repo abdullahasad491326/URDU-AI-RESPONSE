@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +26,8 @@
       animation: fadeIn 0.6s ease-in-out;
     }
     @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(20px);} to {opacity: 1; transform: translateY(0);}
+      from {opacity: 0; transform: translateY(20px);} 
+      to {opacity: 1; transform: translateY(0);}
     }
     h1 {
       font-size: 1.8em;
@@ -72,12 +74,19 @@
       font-size: 0.9em;
       text-align: left;
       overflow-x: auto;
+      max-height: 200px;
+    }
+    .otp-count {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>📲 SMS OTP Test</h1>
+    <div class="otp-count">Total OTPs sent: <span id="otpCount">0</span></div>
     <form id="smsForm">
       <label for="phone">Phone (03XXXXXXXXX):</label>
       <input type="text" id="phone" name="phone" placeholder="03XXXXXXXXX" required>
@@ -94,19 +103,28 @@
   <script>
     document.getElementById('smsForm').addEventListener('submit', async e => {
       e.preventDefault();
-      const phone = document.getElementById('phone').value;
+      const phone = document.getElementById('phone').value.trim();
       const server = document.getElementById('server').value;
-      document.getElementById('output').textContent = 'Sending...';
+      const output = document.getElementById('output');
+      const otpCountEl = document.getElementById('otpCount');
+      output.textContent = '📤 Sending request...';
       try {
         const res = await fetch('/api/sms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, server })
         });
-        const text = await res.text();
-        document.getElementById('output').textContent = text;
+        const data = await res.json();
+        if (!res.ok) {
+          output.textContent = '❌ Error: ' + (data.error || 'Unknown error');
+        } else {
+          output.textContent = '✅ Success:\n' + JSON.stringify(data, null, 2);
+          if (data.otpCount !== undefined) {
+            otpCountEl.textContent = data.otpCount;
+          }
+        }
       } catch (err) {
-        document.getElementById('output').textContent = 'Error: ' + err.message;
+        output.textContent = '⚠️ Network Error: ' + err.message;
       }
     });
   </script>
