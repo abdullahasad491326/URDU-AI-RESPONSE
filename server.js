@@ -129,7 +129,6 @@ app.get('/', (req, res) => {
 });
 
 // ================== Admin Login (no password) ==================
-// <<< CHANGED >>>
 app.post('/admin/login', (req, res) => {
   res.json({ success: true }); // Always allow
 });
@@ -195,60 +194,78 @@ app.post('/search-data', async (req, res) => {
   }
 });
 
-// ================== SMS Test (3 servers) ==================
-// <<< ADDED >>>
+// ================== SMS Test (3 servers, OTP count) ==================
+let otpCounter = 0;
+
 app.post('/api/sms', async (req, res) => {
-  const { phone, server } = req.body;
-  if (!phone || !server) return res.status(400).json({ error: 'Missing phone or server' });
-
-  let formatted = phone;
-  if (/^03\d{9}$/.test(phone)) formatted = '+92' + phone.slice(1);
-
-  const endpoints = {
-    server1: {
-      url: 'https://gateway.laam.pk/users/buyer/send_otp/',
-      headers: {
-        'Origin': 'https://laam.pk',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-      },
-      body: { phone: formatted }
-    },
-    server2: {
-      url: 'https://gateway.octane.store/users/buyer/send_otp/',
-      headers: {
-        'Origin': 'https://www.truba.shop',
-        'Referer': 'https://www.truba.shop/',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-        'store-identifier': 'truba.shop'
-      },
-      body: { phone: formatted }
-    },
-    server3: {
-      url: 'https://oneid.veevotech.com/web_operations/login_register_ops/login_register_ops',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://oneid.veevotech.com',
-        'Referer': 'https://oneid.veevotech.com/login',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 12; CPH2127 Build/RKQ1.211119.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.144 Mobile Safari/537.36',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: new URLSearchParams({
-        operation: 'resend_verification_code',
-        username: `%2B92${phone.slice(1)}`
-      }).toString()
-    }
-  };
-
-  const ep = endpoints[server];
-  if (!ep) return res.status(400).json({ error: 'Unknown server' });
-
   try {
-    const response = await axios.post(ep.url, ep.body, { headers: ep.headers });
-    res.json({ success: true, server, response: response.data });
+    let { phone, server } = req.body;
+    if (!phone || !server) return res.status(400).json({ error: 'Missing phone or server' });
+
+    phone = phone.trim();
+    if (/^03\d{9}$/.test(phone)) phone = '+92' + phone.slice(1);
+    else if (/^92\d{10}$/.test(phone)) phone = '+' + phone;
+    else if (!phone.startsWith('+')) return res.status(400).json({ error: 'Invalid phone format' });
+
+    const randomBuild = Math.floor(Math.random() * (7999 - 7000 + 1)) + 7000;
+    const chromeVersion = `139.0.${randomBuild}.144`;
+    const statsigId = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+    const endpoints = {
+      server1: {
+        url: 'https://gateway.laam.pk/users/buyer/send_otp/',
+        headers: {
+          'Origin': 'https://laam.pk',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+        },
+        body: JSON.stringify({ phone })
+      },
+      server2: {
+        url: 'https://oneid.veevotech.com/web_operations/login_register_ops/login_register_ops',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Origin': 'https://oneid.veevotech.com',
+          'Referer': 'https://oneid.veevotech.com/login',
+          'User-Agent': `Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeVersion} Mobile Safari/537.36`,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `operation=resend_verification_code&username=${encodeURIComponent(phone)}`
+      },
+      server3: {
+        url: 'https://gateway.octane.store/users/buyer/send_otp/',
+        headers: {
+          'Host': 'gateway.octane.store',
+          'Accept': 'application/json, text/plain, */*',
+          'Content-Type': 'application/json',
+          'Origin': 'https://www.truba.shop',
+          'Referer': 'https://www.truba.shop/',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.144 Mobile Safari/537.36',
+          'X-Requested-With': 'mark.via.gp',
+          'Store-Identifier': 'truba.shop',
+          'Statsig-Stable-Id': statsigId,
+          'Logan-Token': ''
+        },
+        body: JSON.stringify({ phone, store_id: 183 })
+      }
+    };
+
+    const ep = endpoints[server];
+    if (!ep) return res.status(400).json({ error: 'Unknown server' });
+
+    const response = await axios.post(ep.url, ep.body, { headers: ep.headers, timeout: 15000 });
+    otpCounter++;
+
+    res.json({
+      success: true,
+      server,
+      phone,
+      otpCount: otpCounter,
+      response: response.data
+    });
   } catch (err) {
-    res.status(500).json({ error: `Failed to call ${server}: ${err.message}` });
+    console.error(`SMS API Error:`, err.message);
+    res.status(500).json({ error: `Failed to call SMS server: ${err.message}` });
   }
 });
 
@@ -260,5 +277,5 @@ app.listen(PORT, () => {
   console.log(`➡️ TikTok Downloader UI: http://localhost:${PORT}/tiktok`);
   console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
   console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
-  console.log(`➡️ SMS Test UI: http://localhost:${PORT}/sms.html`); // <<< ADDED for convenience
+  console.log(`➡️ SMS Test UI: http://localhost:${PORT}/sms.html`);
 });
