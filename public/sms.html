@@ -1,206 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clean OTP Sender</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  
+  <title>SMS OTP Test</title>
   <style>
-    /* Light Color Palette & Fonts */
-    :root {
-      --primary-color: #4a90e2; /* Sky Blue */
-      --secondary-color: #50e3c2; /* Aqua Green */
-      --background-color: #f0f4f8; /* Light Gray */
-      --card-background: #ffffff;
-      --text-color: #333;
-      --input-border: #e0e6ed;
-      --button-text-color: #ffffff;
-      --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      --font-family: 'Roboto', sans-serif;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background-color: var(--background-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      color: var(--text-color);
-      padding: 20px;
-    }
-
-    .container {
-      background: var(--card-background);
-      padding: 40px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: var(--box-shadow);
-      width: 100%;
-      max-width: 400px;
-      animation: fadeIn 0.8s ease-in-out;
-    }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-      color: var(--primary-color);
-      font-weight: 700;
-    }
-
-    .input-group {
-      margin-bottom: 25px;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 15px;
-      border: 1px solid var(--input-border);
-      background: #fafafa;
-      color: var(--text-color);
-      border-radius: 8px;
-      font-size: 1em;
-      transition: all 0.3s ease;
-      outline: none;
-      box-sizing: border-box;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
-    }
-
-    input::placeholder {
-      color: #999;
-    }
-
-    .button-container {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .button-container button {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1em;
-      font-weight: 500;
-      cursor: pointer;
-      color: var(--button-text-color);
-      background-color: var(--primary-color);
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .button-container button:nth-child(2) {
-      background-color: var(--secondary-color);
-      box-shadow: 0 4px 10px rgba(70, 201, 172, 0.2);
-    }
-
-    .button-container button:hover {
-      opacity: 0.85;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    }
-
-    .output-container {
-      margin-top: 25px;
-    }
-
-    #output {
-      background-color: #f8f9fa;
-      border: 1px solid var(--input-border);
-      padding: 15px;
-      border-radius: 8px;
-      text-align: left;
-      font-family: monospace;
-      font-size: 0.9em;
-      color: var(--text-color);
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      min-height: 50px;
-    }
-
-    /* Mobile-specific adjustments */
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-      }
-      .container {
-        padding: 30px 20px;
-        border-radius: 10px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-      input[type="text"],
-      .button-container button {
-        padding: 12px;
-        font-size: 0.9em;
-      }
-      .button-container {
-        gap: 10px;
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+    h1 { text-align: center; font-size: 1.5em; }
+    label { display: block; margin: 10px 0 5px; }
+    input, select, button { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; }
+    pre { background: #222; color: #0f0; padding: 10px; border-radius: 5px; overflow-x: auto; }
   </style>
 </head>
 <body>
-
-  <div class="container">
-    <h1>OTP Sender</h1>
-
-    <div class="input-group">
-      <input type="text" id="phone" placeholder="+923XXXXXXXXX" required>
-    </div>
-
-    <div class="button-container">
-      <button onclick="sendOTP(1)">Send via Server 1</button>
-      <button onclick="sendOTP(2)">Send via Server 2</button>
-      <button onclick="sendOTP(3)">Send via Server 3</button>
-    </div>
-
-    <div class="output-container">
-      <pre id="output"></pre>
-    </div>
+  <div class="card">
+    <h1>SMS OTP Test</h1>
+    <form id="smsForm">
+      <label for="phone">Phone (03XXXXXXXXX):</label>
+      <input type="text" id="phone" name="phone" required>
+      <label for="server">Select Server:</label>
+      <select id="server" name="server">
+        <option value="server1">Server 1</option>
+        <option value="server2">Server 2</option>
+        <option value="server3">Server 3</option>
+      </select>
+      <button type="submit">Send OTP</button>
+    </form>
+    <pre id="output">Waiting for request...</pre>
   </div>
-
   <script>
-    async function sendOTP(server) {
-      const phone = document.getElementById('phone').value.trim();
-      const output = document.getElementById('output');
-
-      if (!phone) {
-        output.textContent = '❌ Please enter a phone number.';
-        return;
-      }
-
-      output.textContent = `⏳ Requesting OTP for ${phone} via Server ${server}...`;
-
+    document.getElementById('smsForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const phone = document.getElementById('phone').value;
+      const server = document.getElementById('server').value;
+      document.getElementById('output').textContent = 'Sending...';
       try {
-        const response = await fetch(`/api/server${server}`, {
+        const res = await fetch('/api/sms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone })
+          body: JSON.stringify({ phone, server })
         });
-
-        const text = await response.text();
-        output.textContent = `✅ Response from Server ${server}:\n\n${text}`;
+        const text = await res.text();
+        document.getElementById('output').textContent = text;
       } catch (err) {
-        output.textContent = `❌ Error: ${err.message}`;
+        document.getElementById('output').textContent = 'Error: ' + err.message;
       }
-    }
+    });
   </script>
 </body>
 </html>
