@@ -3,21 +3,84 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SMS OTP Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-    .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-    h1 { text-align: center; font-size: 1.5em; }
-    label { display: block; margin: 10px 0 5px; }
-    input, select, button { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; }
-    pre { background: #222; color: #0f0; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);} to {opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      font-size: 1.8em;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      text-align: left;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 15px;
+      font-size: 1em;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102,126,234,0.2);
+    }
+    button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    pre {
+      background: #1e1e2f;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 0.9em;
+      text-align: left;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>SMS OTP Test</h1>
+    <h1>📲 SMS OTP Test</h1>
     <form id="smsForm">
       <label for="phone">Phone (03XXXXXXXXX):</label>
-      <input type="text" id="phone" name="phone" required>
+      <input type="text" id="phone" name="phone" placeholder="03XXXXXXXXX" required>
       <label for="server">Select Server:</label>
       <select id="server" name="server">
         <option value="server1">Server 1</option>
