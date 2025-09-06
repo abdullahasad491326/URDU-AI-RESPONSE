@@ -203,8 +203,8 @@ app.post('/api/sms', async (req, res) => {
     if (!phone || !server) return res.status(400).json({ error: 'Missing phone or server' });
 
     amount = parseInt(amount, 10);
-    if (isNaN(amount) || amount < 1 || amount > 20) {
-      return res.status(400).json({ error: '❌ OTP amount must be between 1 and 20' });
+    if (isNaN(amount) || amount < 1 || amount > 10) {
+      return res.status(400).json({ error: '❌ OTP amount must be between 1 and 10' });
     }
 
     phone = phone.trim();
