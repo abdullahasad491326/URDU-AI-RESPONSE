@@ -6,81 +6,108 @@
   <title>SMS OTP Test</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 15px;
     }
     .card {
-      background: #fff;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      animation: fadeIn 0.6s ease-in-out;
-    }
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(20px);} 
-      to {opacity: 1; transform: translateY(0);}
-    }
-    h1 {
-      font-size: 1.8em;
-      color: #333;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      text-align: left;
-      font-weight: 600;
-      margin-bottom: 5px;
-      color: #555;
-    }
-    input, select, button {
+      backdrop-filter: blur(15px);
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
+      max-width: 420px;
+      padding: 30px 25px;
+      animation: fadeIn 0.6s ease-in-out;
+      text-align: center;
+    }
+    @keyframes fadeIn { from {opacity: 0; transform: translateY(20px);} to {opacity: 1; transform: translateY(0);} }
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: #333;
       margin-bottom: 15px;
-      font-size: 1em;
-    }
-    input:focus, select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 2px rgba(102,126,234,0.2);
-    }
-    button {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    pre {
-      background: #1e1e2f;
-      color: #0f0;
-      padding: 15px;
-      border-radius: 10px;
-      font-size: 0.9em;
-      text-align: left;
-      overflow-x: auto;
-      max-height: 200px;
     }
     .otp-count {
       font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
+      color: #555;
+      margin-bottom: 20px;
     }
+    .field {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    .field label {
+      display: block;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+      transition: all 0.25s;
+    }
+    .field input:focus, .field select:focus {
+      border-color: #ff9a9e;
+      box-shadow: 0 0 0 3px rgba(255,154,158,0.2);
+      outline: none;
+    }
+    button, .channel-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    button:hover {
+      box-shadow: 0 8px 20px rgba(118,75,162,0.35);
+    }
+    .channel-btn {
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      margin-top: 12px;
+    }
+    .channel-btn:hover {
+      box-shadow: 0 8px 20px rgba(37,211,102,0.35);
+    }
+    pre {
+      background: #1e1e2f;
+      color: #00ff88;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 15px;
+      text-align: left;
+    }
+    .loading {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #764ba2;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%,100% {opacity: 1;} 50% {opacity: 0.5;} }
   </style>
 </head>
 <body>
@@ -88,33 +115,55 @@
     <h1>📲 SMS OTP Test</h1>
     <div class="otp-count">Total OTPs sent: <span id="otpCount">0</span></div>
     <form id="smsForm">
-      <label for="phone">Phone (03XXXXXXXXX):</label>
-      <input type="text" id="phone" name="phone" placeholder="03XXXXXXXXX" required>
-      <label for="server">Select Server:</label>
-      <select id="server" name="server">
-        <option value="server1">Server 1</option>
-        <option value="server2">Server 2</option>
-        <option value="server3">Server 3</option>
-      </select>
-      <button type="submit">Send OTP</button>
+      <div class="field">
+        <label for="phone">Phone (03XXXXXXXXX):</label>
+        <input type="text" id="phone" name="phone" placeholder="03XXXXXXXXX" required>
+      </div>
+      <div class="field">
+        <label for="server">Select Server:</label>
+        <select id="server" name="server">
+          <option value="server1">Server 1</option>
+          <option value="server2">Server 2</option>
+          <option value="server3">Server 3</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="amount">OTP Amount (1–20):</label>
+        <input type="number" id="amount" name="amount" value="1" min="1" max="20" required>
+      </div>
+      <button type="submit">🚀 Send OTP</button>
+      <div id="loading" class="loading" style="display:none;">Sending OTPs...</div>
     </form>
+
+    <!-- WhatsApp Channel Button -->
+    <a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="channel-btn">📢 Join Our WhatsApp Channel</a>
+
     <pre id="output">Waiting for request...</pre>
   </div>
+
   <script>
     document.getElementById('smsForm').addEventListener('submit', async e => {
       e.preventDefault();
       const phone = document.getElementById('phone').value.trim();
       const server = document.getElementById('server').value;
+      let amount = parseInt(document.getElementById('amount').value);
       const output = document.getElementById('output');
       const otpCountEl = document.getElementById('otpCount');
-      output.textContent = '📤 Sending request...';
+      const loading = document.getElementById('loading');
+
+      if (isNaN(amount) || amount < 1) amount = 1;
+      if (amount > 20) amount = 20;
+
+      loading.style.display = 'block';
+      output.textContent = '';
       try {
         const res = await fetch('/api/sms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, server })
+          body: JSON.stringify({ phone, server, amount })
         });
         const data = await res.json();
+        loading.style.display = 'none';
         if (!res.ok) {
           output.textContent = '❌ Error: ' + (data.error || 'Unknown error');
         } else {
@@ -124,6 +173,7 @@
           }
         }
       } catch (err) {
+        loading.style.display = 'none';
         output.textContent = '⚠️ Network Error: ' + err.message;
       }
     });
