@@ -1,90 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Secure SMS Sender</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Bai+Jamjuree:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean OTP Sender</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
-    :root { --primary:#00c4ff; --secondary:#8e44ad; --background:#0a0015; --card-bg:rgba(2,0,5,0.8); --text-light:#f0f8ff; --text-muted:#64b5f6; --border-color:rgba(142,68,173,0.4); --error:#FF5722; --success:#2ECC71;}
-    body[data-theme="emerald"] {--primary:#00e8c7; --secondary:#00a896; --background:#001515; --card-bg:rgba(0,5,5,0.8); --border-color:rgba(0,168,150,0.4);}
-    body[data-theme="crimson"] {--primary:#ff5722; --secondary:#c0392b; --background:#150500; --card-bg:rgba(5,2,0,0.8); --border-color:rgba(192,57,43,0.4);}
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background-color:var(--background);font-family:'Bai Jamjuree',sans-serif;color:var(--text-light);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
-    .container{max-width:500px;width:100%;}
-    .card{background:var(--card-bg);backdrop-filter:blur(5px);border:1px solid var(--border-color);border-radius:12px;padding:30px;margin-bottom:25px;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
-    h2{font-family:'Syncopate',sans-serif;font-size:1.8rem;text-align:center;margin-bottom:25px;color:var(--primary);}
-    h2 .icon{font-size:1.2em;margin-right:10px;}
-    .input-wrapper{position:relative;margin-bottom:20px;}
-    input[type="text"],textarea{width:100%;padding:12px 15px;font-size:16px;border-radius:8px;border:1px solid var(--border-color);outline:none;background:transparent;color:var(--text-light);}
-    input::placeholder,textarea::placeholder{color:var(--text-muted);}
-    input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 5px var(--primary);}
-    textarea{resize:vertical;min-height:80px;}
-    button{width:100%;padding:12px 0;font-size:16px;font-weight:600;border:none;border-radius:8px;background:var(--secondary);color:white;cursor:pointer;text-transform:uppercase;}
-    button:hover{background:var(--primary);}
-    .result{padding:20px;border-radius:8px;font-size:14px;line-height:1.6;text-align:center;background:rgba(0,0,0,0.5);border:1px dashed var(--border-color);}
-    .result.initial{color:var(--text-muted);}
-    .error{background:rgba(255,69,0,0.2);color:var(--error);border-color:var(--error);}
-    .spinner{border:3px solid rgba(255,255,255,0.2);border-top:3px solid var(--primary);border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-left:8px;}
-    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-    .whatsapp-button{position:fixed;right:25px;bottom:25px;padding:12px 20px;background:var(--success);color:white;border-radius:50px;text-decoration:none;font-weight:600;}
+    /* Light Color Palette & Fonts */
+    :root {
+      --primary-color: #4a90e2; /* Sky Blue */
+      --secondary-color: #50e3c2; /* Aqua Green */
+      --background-color: #f0f4f8; /* Light Gray */
+      --card-background: #ffffff;
+      --text-color: #333;
+      --input-border: #e0e6ed;
+      --button-text-color: #ffffff;
+      --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--background-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text-color);
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-background);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: var(--box-shadow);
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid var(--input-border);
+      background: #fafafa;
+      color: var(--text-color);
+      border-radius: 8px;
+      font-size: 1em;
+      transition: all 0.3s ease;
+      outline: none;
+      box-sizing: border-box;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+    }
+
+    input::placeholder {
+      color: #999;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .button-container button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--button-text-color);
+      background-color: var(--primary-color);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .button-container button:nth-child(2) {
+      background-color: var(--secondary-color);
+      box-shadow: 0 4px 10px rgba(70, 201, 172, 0.2);
+    }
+
+    .button-container button:hover {
+      opacity: 0.85;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .output-container {
+      margin-top: 25px;
+    }
+
+    #output {
+      background-color: #f8f9fa;
+      border: 1px solid var(--input-border);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: left;
+      font-family: monospace;
+      font-size: 0.9em;
+      color: var(--text-color);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      min-height: 50px;
+    }
+
+    /* Mobile-specific adjustments */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 30px 20px;
+        border-radius: 10px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+      input[type="text"],
+      .button-container button {
+        padding: 12px;
+        font-size: 0.9em;
+      }
+      .button-container {
+        gap: 10px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
+
   <div class="container">
-    <section class="card">
-      <h2><i class="fas fa-sms icon"></i> Secure SMS Sender</h2>
-      <div class="input-wrapper">
-        <input type="text" id="smsMobile" placeholder="Enter recipient's 11-digit number" maxlength="11" />
-      </div>
-      <div class="input-wrapper">
-        <textarea id="smsMessage" placeholder="Enter your message text" required></textarea>
-      </div>
-      <button onclick="sendCrownOneSms()">Send SMS</button>
-      <div id="smsStatus" class="result initial">Send messages securely...</div>
-    </section>
+    <h1>OTP Sender</h1>
+
+    <div class="input-group">
+      <input type="text" id="phone" placeholder="+923XXXXXXXXX" required>
+    </div>
+
+    <div class="button-container">
+      <button onclick="sendOTP(1)">Send via Server 1</button>
+      <button onclick="sendOTP(2)">Send via Server 2</button>
+      <button onclick="sendOTP(3)">Send via Server 3</button>
+    </div>
+
+    <div class="output-container">
+      <pre id="output"></pre>
+    </div>
   </div>
-  <a href="https://whatsapp.com/channel/0029Vb9shWp4o7qPSrCXS603" target="_blank" class="whatsapp-button"><i class="fab fa-whatsapp"></i> Join Channel</a>
 
   <script>
-    async function sendCrownOneSms() {
-      const mobile = document.getElementById('smsMobile').value.trim();
-      const message = document.getElementById('smsMessage').value.trim();
-      const statusDiv = document.getElementById('smsStatus');
-      statusDiv.innerHTML = `<p>Sending SMS... <span class="spinner"></span></p>`;
-      statusDiv.className = 'result initial';
+    async function sendOTP(server) {
+      const phone = document.getElementById('phone').value.trim();
+      const output = document.getElementById('output');
 
-      if (!/^03\d{9}$/.test(mobile)) {
-        statusDiv.className = 'result error';
-        statusDiv.innerHTML = "❌ Invalid number";
+      if (!phone) {
+        output.textContent = '❌ Please enter a phone number.';
         return;
       }
-      if (!message){
-        statusDiv.className = 'result error';
-        statusDiv.innerHTML = "❌ Empty message";
-        return;
-      }
+
+      output.textContent = `⏳ Requesting OTP for ${phone} via Server ${server}...`;
 
       try {
-        const res = await fetch('/send-sms', {
+        const response = await fetch(`/api/server${server}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile, message })
+          body: JSON.stringify({ phone })
         });
 
-        const result = await res.json();
-
-        if (res.ok && result.success) {
-          statusDiv.className = 'result';
-          statusDiv.innerHTML = `🙄 MASSEGE SERVICE BLOCKED BY WEB OWNER`;
-        } else {
-          statusDiv.className = 'result error';
-          statusDiv.innerHTML = `❌ Failed: ${result.error || 'Unknown error'}`;
-        }
-      } catch (e) {
-        statusDiv.className = 'result error';
-        statusDiv.innerHTML = "🙄 SYSTEM BLOCKED BY DEVELOPER";
+        const text = await response.text();
+        output.textContent = `✅ Response from Server ${server}:\n\n${text}`;
+      } catch (err) {
+        output.textContent = `❌ Error: ${err.message}`;
       }
     }
   </script>
