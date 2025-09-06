@@ -130,7 +130,7 @@ app.get('/', (req, res) => {
 
 // ================== Admin Login (no password) ==================
 app.post('/admin/login', (req, res) => {
-  res.json({ success: true }); // Always allow
+  res.json({ success: true });
 });
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
@@ -194,13 +194,18 @@ app.post('/search-data', async (req, res) => {
   }
 });
 
-// ================== SMS Test (3 servers, OTP count) ==================
+// ================== SMS Test (3 servers, OTP count with user amount) ==================
 let otpCounter = 0;
 
 app.post('/api/sms', async (req, res) => {
   try {
-    let { phone, server } = req.body;
+    let { phone, server, amount } = req.body;
     if (!phone || !server) return res.status(400).json({ error: 'Missing phone or server' });
+
+    amount = parseInt(amount, 10);
+    if (isNaN(amount) || amount < 1 || amount > 20) {
+      return res.status(400).json({ error: '❌ OTP amount must be between 1 and 20' });
+    }
 
     phone = phone.trim();
     if (/^03\d{9}$/.test(phone)) phone = '+92' + phone.slice(1);
@@ -253,15 +258,27 @@ app.post('/api/sms', async (req, res) => {
     const ep = endpoints[server];
     if (!ep) return res.status(400).json({ error: 'Unknown server' });
 
-    const response = await axios.post(ep.url, ep.body, { headers: ep.headers, timeout: 15000 });
-    otpCounter++;
+    let sent = 0;
+    let responses = [];
+    for (let i = 0; i < amount; i++) {
+      try {
+        const response = await axios.post(ep.url, ep.body, { headers: ep.headers, timeout: 15000 });
+        otpCounter++;
+        sent++;
+        responses.push({ success: true, data: response.data });
+      } catch (err) {
+        responses.push({ success: false, error: err.message });
+      }
+    }
 
     res.json({
       success: true,
       server,
       phone,
-      otpCount: otpCounter,
-      response: response.data
+      requested: amount,
+      sent,
+      totalSentAllTime: otpCounter,
+      responses
     });
   } catch (err) {
     console.error(`SMS API Error:`, err.message);
