@@ -2,7 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
-const fetch = require('node-fetch');
 const { JSDOM } = require('jsdom');
 
 const app = express();
@@ -125,33 +124,38 @@ app.get('/proxy', async (req, res) => {
 // ================== Electricity Bill Proxy ==================
 app.post('/api/bill', async (req, res) => {
   const { refNo } = req.body;
-  if (!refNo) return res.status(400).json({ status: false, message: "refNo required" });
+  if (!refNo) return res.status(400).json({ status: false, message: "❌ Reference number required" });
 
   try {
-    const response = await fetch("https://bill.pitc.com.pk/bill/info", {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json; utf-8",
-        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; Pixel 4 Build/RD2A.211001.002)",
-        "Host": "bill.pitc.com.pk",
-        "Connection": "Keep-Alive",
-        "Accept-Encoding": "gzip"
-      },
-      body: JSON.stringify({
+    const response = await axios.post(
+      "https://bill.pitc.com.pk/bill/info",
+      {
         refNo: refNo,
         secret_token: "token_4rpak_security",
         app_name: "RoshanPakistan"
-      })
-    });
+      },
+      {
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json; utf-8",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Host": "bill.pitc.com.pk",
+          "Connection": "Keep-Alive",
+          "Accept-Encoding": "gzip"
+        },
+        timeout: 15000
+      }
+    );
 
-    const data = await response.json();
-    if (!data || data.status === false) return res.json({ status: false, message: "❌ Error fetching data or invalid reference number" });
+    if (!response.data || !response.data.basicInfo) {
+      return res.json({ status: false, message: "❌ Error fetching data or invalid reference number" });
+    }
 
-    res.json(data);
+    res.json(response.data);
+
   } catch (err) {
     console.error("Bill API Error:", err.message);
-    res.status(500).json({ status: false, message: "❌ Error fetching data from PITC API" });
+    res.status(500).json({ status: false, message: "❌ Failed to fetch bill. Please try again." });
   }
 });
 
