@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PITC Electricity Bill Checker</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 700px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0d47a1;
+  }
+  input[type="text"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: #0d47a1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #08306b;
+  }
+  pre {
+    background: #e8eaf6;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .error {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>PITC Electricity Bill Checker</h1>
+  <input type="text" id="refNo" placeholder="Enter Reference Number">
+  <button onclick="fetchBill()">Check Bill</button>
+  <div id="result"></div>
+</div>
+
+<script>
+async function fetchBill() {
+  const refNo = document.getElementById('refNo').value.trim();
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = '';
+
+  if (!refNo) {
+    resultDiv.innerHTML = '<p class="error">❌ Please enter a reference number.</p>';
+    return;
+  }
+
+  resultDiv.innerHTML = '<p>Fetching bill...</p>';
+
+  try {
+    const response = await fetch('/api/bill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refNo })
+    });
+
+    const data = await response.json();
+
+    if (!data || data.status === false) {
+      resultDiv.innerHTML = `<p class="error">${data.message || '❌ Error fetching data.'}</p>`;
+      return;
+    }
+
+    // Display basic bill info
+    const bill = data.basicInfo;
+    let html = `
+      <pre>
+👤 Consumer: ${bill.consumerName.trim()}
+🏠 Address: ${bill.consumerAddress1.trim()} ${bill.consumerAddress2.trim()}
+📄 App No: ${bill.appNo}
+🧾 Ref No: ${bill.refNo}
+📅 Bill Month: ${new Date(bill.billMonth).toLocaleDateString()}
+💰 Net Bill: PKR ${bill.netBill}
+💸 Late Payment Surcharge: PKR ${bill.LatePaymentSurcharge || '0'}
+🗓 Bill Due Date: ${new Date(bill.billDueDate).toLocaleDateString()}
+⚡ Total Units Consumed: ${bill.totCurCons}
+      </pre>
+    `;
+
+    // Optional: show meter info
+    if (data.metersInfo && data.metersInfo.length) {
+      html += '<h3>Meter Details:</h3>';
+      data.metersInfo.forEach((m, idx) => {
+        html += `<pre>
+Meter ${idx+1}: ${m.mtrNo}
+Previous Reading: ${m.mtrKwhPrvRead}
+Current Reading: ${m.mtrKwhPrsRead}
+Consumption: ${m.mtrKwhConsump} kWh
+        </pre>`;
+      });
+    }
+
+    // Optional: show history
+    if (data.histInfo) {
+      html += '<h3>Past Bills:</h3><pre>';
+      for (let i=1;i<=13;i++){
+        const month = data.histInfo[`gbHistMM${i}`];
+        const units = data.histInfo[`gbHistUnits${i}`];
+        const payment = data.histInfo[`payment${i}`];
+        if(month) html += `${month}: ${units} units - PKR ${payment}\n`;
+      }
+      html += '</pre>';
+    }
+
+    resultDiv.innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+    resultDiv.innerHTML = '<p class="error">❌ Failed to fetch bill. Please try again.</p>';
+  }
+}
+</script>
+
+</body>
+  </html>
