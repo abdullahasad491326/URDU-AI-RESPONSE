@@ -29,50 +29,6 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// ================== DP Viewer Proxy ==================
-app.get('/api/dp', async (req, res) => {
-  try {
-    const phone = req.query.phone;
-    if (!phone) return res.status(400).json({ error: "❌ Phone number required" });
-
-    const apiUrl = `https://dpview.ilyashassan4u.workers.dev/?phone=${encodeURIComponent(phone)}`;
-    const userAgents = [
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
-      "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-      "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
-    ];
-    const platforms = ['Windows', 'Macintosh', 'Linux', 'iPhone', 'Android'];
-    const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
-    const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
-
-    const response = await axios.get(apiUrl, {
-      responseType: 'arraybuffer',
-      headers: {
-        "Host": "dpview.ilyashassan4u.workers.dev",
-        "user-agent": randomUA,
-        "sec-ch-ua-platform": `"${randomPlatform}"`,
-        "sec-ch-ua-mobile": randomPlatform === "Android" || randomPlatform === "iPhone" ? "?1" : "?0",
-        "accept": "*/*",
-        "origin": "https://www.trickyworlds.com",
-        "x-requested-with": "XMLHttpRequest",
-        "sec-fetch-site": "cross-site",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-dest": "empty",
-        "referer": "https://www.trickyworlds.com/",
-        "accept-language": "en-US,en;q=0.9",
-        "priority": "u=1, i"
-      }
-    });
-
-    res.set("Content-Type", response.headers["content-type"] || "image/jpeg");
-    res.send(response.data);
-  } catch (err) {
-    console.error("DP API Error:", err.message);
-    res.status(500).json({ error: "❌ Failed to fetch DP" });
-  }
-});
-
 // ================== TikTok Downloader Proxy ==================
 app.post("/api/tiktok", async (req, res) => {
   try {
@@ -128,14 +84,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'Operator.html'));
 });
 
-// ================== Admin Login (no password) ==================
-app.post('/admin/login', (req, res) => {
-  res.json({ success: true });
-});
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
 // ================== Operator Check ==================
 app.get('/proxy', async (req, res) => {
   let number = req.query.number;
@@ -174,115 +122,36 @@ app.get('/proxy', async (req, res) => {
   }
 });
 
-// ================== CNIC and Mobile Search ==================
-app.post('/search-data', async (req, res) => {
-  const { mobileNumber, cnicNumber } = req.body;
-  let searchParam = '';
-
-  if (mobileNumber && /^03\d{9}$/.test(mobileNumber)) searchParam = '92' + mobileNumber.slice(1);
-  else if (mobileNumber && /^923\d{9}$/.test(mobileNumber)) searchParam = mobileNumber;
-  else if (cnicNumber && /^\d{13}$/.test(cnicNumber)) searchParam = cnicNumber;
-  else return res.status(400).json({ error: '❌ Invalid or missing mobile number or CNIC' });
+// ================== Electricity Bill Proxy ==================
+app.post('/api/bill', async (req, res) => {
+  const { refNo } = req.body;
+  if (!refNo) return res.status(400).json({ status: false, message: "refNo required" });
 
   try {
-    const apiUrl = `https://allnetworkdata.com/?number=${encodeURIComponent(searchParam)}`;
-    const response = await axios.get(apiUrl);
-    res.json({ success: true, searchParam, data: response.data });
-  } catch (error) {
-    console.error('Search API Error:', error.message);
-    res.status(500).json({ error: '❌ Failed to fetch search data' });
-  }
-});
-
-// ================== SMS Test (3 servers, OTP count with user amount) ==================
-let otpCounter = 0;
-
-app.post('/api/sms', async (req, res) => {
-  try {
-    let { phone, server, amount } = req.body;
-    if (!phone || !server) return res.status(400).json({ error: 'Missing phone or server' });
-
-    amount = parseInt(amount, 10);
-    if (isNaN(amount) || amount < 1 || amount > 10) {
-      return res.status(400).json({ error: '❌ OTP amount must be between 1 and 10' });
-    }
-
-    phone = phone.trim();
-    if (/^03\d{9}$/.test(phone)) phone = '+92' + phone.slice(1);
-    else if (/^92\d{10}$/.test(phone)) phone = '+' + phone;
-    else if (!phone.startsWith('+')) return res.status(400).json({ error: 'Invalid phone format' });
-
-    const randomBuild = Math.floor(Math.random() * (7999 - 7000 + 1)) + 7000;
-    const chromeVersion = `139.0.${randomBuild}.144`;
-    const statsigId = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-
-    const endpoints = {
-      server1: {
-        url: 'https://gateway.laam.pk/users/buyer/send_otp/',
-        headers: {
-          'Origin': 'https://laam.pk',
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-        },
-        body: JSON.stringify({ phone })
+    const response = await fetch("https://bill.pitc.com.pk/bill/info", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json; utf-8",
+        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; Pixel 4 Build/RD2A.211001.002)",
+        "Host": "bill.pitc.com.pk",
+        "Connection": "Keep-Alive",
+        "Accept-Encoding": "gzip"
       },
-      server2: {
-        url: 'https://oneid.veevotech.com/web_operations/login_register_ops/login_register_ops',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'Origin': 'https://oneid.veevotech.com',
-          'Referer': 'https://oneid.veevotech.com/login',
-          'User-Agent': `Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeVersion} Mobile Safari/537.36`,
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: `operation=resend_verification_code&username=${encodeURIComponent(phone)}`
-      },
-      server3: {
-        url: 'https://gateway.octane.store/users/buyer/send_otp/',
-        headers: {
-          'Host': 'gateway.octane.store',
-          'Accept': 'application/json, text/plain, */*',
-          'Content-Type': 'application/json',
-          'Origin': 'https://www.truba.shop',
-          'Referer': 'https://www.truba.shop/',
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.144 Mobile Safari/537.36',
-          'X-Requested-With': 'mark.via.gp',
-          'Store-Identifier': 'truba.shop',
-          'Statsig-Stable-Id': statsigId,
-          'Logan-Token': ''
-        },
-        body: JSON.stringify({ phone, store_id: 183 })
-      }
-    };
-
-    const ep = endpoints[server];
-    if (!ep) return res.status(400).json({ error: 'Unknown server' });
-
-    let sent = 0;
-    let responses = [];
-    for (let i = 0; i < amount; i++) {
-      try {
-        const response = await axios.post(ep.url, ep.body, { headers: ep.headers, timeout: 15000 });
-        otpCounter++;
-        sent++;
-        responses.push({ success: true, data: response.data });
-      } catch (err) {
-        responses.push({ success: false, error: err.message });
-      }
-    }
-
-    res.json({
-      success: true,
-      server,
-      phone,
-      requested: amount,
-      sent,
-      totalSentAllTime: otpCounter,
-      responses
+      body: JSON.stringify({
+        refNo: refNo,
+        secret_token: "token_4rpak_security",
+        app_name: "RoshanPakistan"
+      })
     });
+
+    const data = await response.json();
+    if (!data || data.status === false) return res.json({ status: false, message: "❌ Error fetching data or invalid reference number" });
+
+    res.json(data);
   } catch (err) {
-    console.error(`SMS API Error:`, err.message);
-    res.status(500).json({ error: `Failed to call SMS server: ${err.message}` });
+    console.error("Bill API Error:", err.message);
+    res.status(500).json({ status: false, message: "❌ Error fetching data from PITC API" });
   }
 });
 
@@ -290,9 +159,7 @@ app.post('/api/sms', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Server running at: http://localhost:${PORT}`);
   console.log(`➡️ ChatGPT UI: http://localhost:${PORT}/`);
-  console.log(`➡️ DP Viewer UI: http://localhost:${PORT}/profile`);
   console.log(`➡️ TikTok Downloader UI: http://localhost:${PORT}/tiktok`);
   console.log(`➡️ Operator UI: http://localhost:${PORT}/`);
-  console.log(`➡️ Admin Panel: http://localhost:${PORT}/admin`);
-  console.log(`➡️ SMS Test UI: http://localhost:${PORT}/sms.html`);
+  console.log(`➡️ Electricity Bill UI: http://localhost:${PORT}/`);
 });
