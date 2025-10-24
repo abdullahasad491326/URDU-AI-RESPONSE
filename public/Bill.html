@@ -57,6 +57,11 @@
     font-weight: bold;
     text-align: center;
   }
+  .fallback {
+    color: orange;
+    font-weight: bold;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -95,10 +100,20 @@ async function fetchBill() {
       return;
     }
 
-    // Display basic bill info
-    const bill = data.basicInfo;
-    let html = `
-      <pre>
+    let html = '';
+
+    // Check if fallback is used
+    if (data.fallback) {
+      html += `<p class="fallback">⚠️ Fallback data used. Some fields may be missing.</p>`;
+      html += '<pre>';
+      for (const key in data.billInfo) {
+        html += `${key}: ${data.billInfo[key]}\n`;
+      }
+      html += '</pre>';
+    } else {
+      const bill = data.basicInfo;
+      html += `
+        <pre>
 👤 Consumer: ${bill.consumerName.trim()}
 🏠 Address: ${bill.consumerAddress1.trim()} ${bill.consumerAddress2.trim()}
 📄 App No: ${bill.appNo}
@@ -108,32 +123,31 @@ async function fetchBill() {
 💸 Late Payment Surcharge: PKR ${bill.LatePaymentSurcharge || '0'}
 🗓 Bill Due Date: ${new Date(bill.billDueDate).toLocaleDateString()}
 ⚡ Total Units Consumed: ${bill.totCurCons}
-      </pre>
-    `;
+        </pre>
+      `;
 
-    // Optional: show meter info
-    if (data.metersInfo && data.metersInfo.length) {
-      html += '<h3>Meter Details:</h3>';
-      data.metersInfo.forEach((m, idx) => {
-        html += `<pre>
+      if (data.metersInfo && data.metersInfo.length) {
+        html += '<h3>Meter Details:</h3>';
+        data.metersInfo.forEach((m, idx) => {
+          html += `<pre>
 Meter ${idx+1}: ${m.mtrNo}
 Previous Reading: ${m.mtrKwhPrvRead}
 Current Reading: ${m.mtrKwhPrsRead}
 Consumption: ${m.mtrKwhConsump} kWh
-        </pre>`;
-      });
-    }
-
-    // Optional: show history
-    if (data.histInfo) {
-      html += '<h3>Past Bills:</h3><pre>';
-      for (let i=1;i<=13;i++){
-        const month = data.histInfo[`gbHistMM${i}`];
-        const units = data.histInfo[`gbHistUnits${i}`];
-        const payment = data.histInfo[`payment${i}`];
-        if(month) html += `${month}: ${units} units - PKR ${payment}\n`;
+          </pre>`;
+        });
       }
-      html += '</pre>';
+
+      if (data.histInfo) {
+        html += '<h3>Past Bills:</h3><pre>';
+        for (let i=1;i<=13;i++){
+          const month = data.histInfo[`gbHistMM${i}`];
+          const units = data.histInfo[`gbHistUnits${i}`];
+          const payment = data.histInfo[`payment${i}`];
+          if(month) html += `${month}: ${units} units - PKR ${payment}\n`;
+        }
+        html += '</pre>';
+      }
     }
 
     resultDiv.innerHTML = html;
@@ -146,4 +160,4 @@ Consumption: ${m.mtrKwhConsump} kWh
 </script>
 
 </body>
-  </html>
+</html>
