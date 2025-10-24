@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
+const fetch = require('node-fetch');
 const { JSDOM } = require('jsdom');
 
 const app = express();
@@ -121,41 +122,62 @@ app.get('/proxy', async (req, res) => {
   }
 });
 
-// ================== Electricity Bill Proxy ==================
+// ================== Electricity Bill Proxy with Fallback ==================
 app.post('/api/bill', async (req, res) => {
   const { refNo } = req.body;
   if (!refNo) return res.status(400).json({ status: false, message: "❌ Reference number required" });
 
   try {
-    const response = await axios.post(
-      "https://bill.pitc.com.pk/bill/info",
-      {
-        refNo: refNo,
-        secret_token: "token_4rpak_security",
-        app_name: "RoshanPakistan"
+    // ===== Primary API Attempt =====
+    const apiResponse = await axios.post("https://bill.pitc.com.pk/bill/info", {
+      refNo: refNo,
+      secret_token: "token_4rpak_security",
+      app_name: "RoshanPakistan"
+    }, {
+      headers: {
+        "Accept": "application/json, text/plain, */*",
+        "Content-Type": "application/json;charset=UTF-8",
+        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; Pixel 4 Build/RD2A.211001.002)",
+        "Host": "bill.pitc.com.pk",
+        "Connection": "Keep-Alive",
+        "Accept-Encoding": "gzip, deflate"
       },
-      {
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json; utf-8",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          "Host": "bill.pitc.com.pk",
-          "Connection": "Keep-Alive",
-          "Accept-Encoding": "gzip"
-        },
-        timeout: 15000
-      }
-    );
+      timeout: 15000
+    });
 
-    if (!response.data || !response.data.basicInfo) {
-      return res.json({ status: false, message: "❌ Error fetching data or invalid reference number" });
+    if (apiResponse.data && apiResponse.data.status !== false) {
+      return res.json(apiResponse.data);
     }
 
-    res.json(response.data);
+    // ===== Fallback Scraper =====
+    console.log("⚠️ API failed. Using fallback scraper...");
+
+    const portalRes = await axios.get(`https://bill.pitc.com.pk/bill/view?refNo=${encodeURIComponent(refNo)}`, {
+      headers: { "User-Agent": "Mozilla/5.0" }
+    });
+
+    const dom = new JSDOM(portalRes.data);
+    const document = dom.window.document;
+
+    const billInfo = {};
+    document.querySelectorAll('table tr').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      if (tds.length === 2) {
+        const key = tds[0].textContent.trim();
+        const value = tds[1].textContent.trim();
+        billInfo[key] = value;
+      }
+    });
+
+    if (Object.keys(billInfo).length === 0) {
+      return res.json({ status: false, message: "❌ Unable to fetch bill via API or portal." });
+    }
+
+    res.json({ status: true, fallback: true, billInfo });
 
   } catch (err) {
-    console.error("Bill API Error:", err.message);
-    res.status(500).json({ status: false, message: "❌ Failed to fetch bill. Please try again." });
+    console.error("Bill API & Fallback Error:", err.message);
+    res.status(500).json({ status: false, message: "❌ Failed to fetch bill. API and fallback both failed." });
   }
 });
 
